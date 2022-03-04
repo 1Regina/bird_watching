@@ -1,0 +1,54 @@
+<!-- <!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"> -->
+  <title>New Bird Sightingt</title>
+<!-- </head>
+<body> -->
+  <%- include("navigator_bar") -%>
+  <div class="container">
+    <h1> Record A New Sighting</h1>
+    <br>
+    <form action = "/note" method="POST" class=".needs-validation">
+
+        <label for="date" class="form-label "><h5>Date:</h5></label>
+        <input type="date" class="form-control w-25 " data-date-end-date="0d" id="date" placeholder="Enter date before today" name="DATE" required>
+        <div class="valid-feedback">Valid.</div>
+        <div class="invalid-feedback">Please fill out this field.</div>
+      <br>
+
+      <!-- <div class="mb-3 mt-3">
+        <label for="behaviour" class="form-label"><h5>Behaviour</h5></label>
+        <input type="text" class="form-control w-25" id="behaviour" placeholder="Enter the behaviour observed" name="BEHAVIOUR" required>
+        <div class="valid-feedback">Valid.</div>
+        <div class="invalid-feedback">Please fill out this field.</div> -->
+  
+        <label for="behaviour" class="form-label "><h5>Behaviour:</h5></label>
+        <div class = "w-25">
+          <div class="input-group-prepend ">
+            <label class="input-group-text " for="inputGroupSelect01">Options</label>
+          </div>
+          <select class="custom-select" id="behaviour" name="BEHAVIOUR" required >
+            <option selected>Choose...</option>
+            <option value="bob_tail">bob tail</option>
+            <option value="head_cock">head cock</option>
+            <option value="wing_stretches">wing stretches</option>
+          </select>
+        </div>
+      <!-- </div> -->
+
+      <br>
+      <div class="mb-3 mt-3">
+        <label for="flock_size" class="form-label"><h5>Flock Size</h5></label>
+        <input type="number" class="form-control w-25" id="behavour" placeholder="Enter the flock size observed" name="FLOCK_SIZE" required>
+        <div class="valid-feedback">Valid.</div>
+        <div class="invalid-feedback">Please fill out this field.</div>
+      </div>
+      <br>
+       <button type="submit" class="btn btn-secondary">Submit</button>
+    </form>
+  </div>
+</body>
+</html>

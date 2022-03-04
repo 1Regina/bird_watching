@@ -1,4 +1,4 @@
-import express from 'express';
+import express, { request, response } from 'express';
 import read, {add} from './jsonFileStorage.js';
 import methodOverride from 'method-override';
 import pg from 'pg';
@@ -47,7 +47,7 @@ let sqlQuery = '';
 // -------------BASE Enter a meal
 if (command === 'log') {
   console.log(`inputData array`, inputData)
-  sqlQuery = 'INSERT INTO notes (behaviour, flock_size) VALUES ($1, $2)';
+  sqlQuery = 'INSERT INTO notes (behaviour, flock_size) VALUES ($1, $2);';
   pool.query(sqlQuery, inputData, whenInsertQueryDone);
 }
 
@@ -60,8 +60,14 @@ if (command === "insertDate") {
   const now = new Date('2022-03-04T12:00:00Z').toLocaleString("en-US", {timeZone: "America/New_York"})
   console.log(`process.agrv[3]`, typeof process.argv[3], process.argv[3])
   // USE edit to populate the table
-  const insertDatesText = `UPDATE notes SET date = '${now}' WHERE id = ${process.argv[3]}`;
+  const insertDatesText = `UPDATE notes SET date = '${now}' WHERE id = ${process.argv[3]};`;
   pool.query(insertDatesText, whenInsertQueryDone);
+}
+
+// REPORT
+if (command === "report") { 
+  const sqlQuery= `SELECT * FROM notes;`;
+  pool.query(sqlQuery, whenInsertQueryDone);
 }
 
 // ====== EJS
@@ -83,7 +89,7 @@ app.get('/', (request, response) => {
   };
 
     // Query using pg.Pool instead of pg.Client
-    pool.query('SELECT * from notes', whenDoneWithQuery);
+    pool.query('SELECT * FROM notes;', whenDoneWithQuery);
 });
 
 // SINGLE SIGHTING PAGE
@@ -108,7 +114,47 @@ app.get('/note/:id', (request, response) => {
   };
 
     // Query using pg.Pool instead of pg.Client
-    pool.query('SELECT * from notes', whenDoneWithQuery);
+    pool.query('SELECT * from notes;', whenDoneWithQuery);
+});
+
+// NEW SIGHTING PAGE
+app.get('/note', (request, response) => {
+  response.render('new_note');
+});
+
+// Save new sighting data sent via POST request from our form
+app.post('/note',(request, response) => {
+  console.log(`before add sighting`)
+  let formData = []
+  let date = request.body.DATE;
+  let behaviour = request.body.BEHAVIOUR;
+  let flock_size = request.body.FLOCK_SIZE;
+  let details 
+  let index
+  formData.push(date);
+  formData.push(behaviour);
+  formData.push(flock_size);
+  console.log('formData INPUT are', formData)
+  sqlQuery = 'INSERT INTO notes (date, behaviour, flock_size) VALUES ($1, $2, $3);';
+  pool.query(sqlQuery, formData, whenInsertQueryDone);
+
+  // redirect to display new recording
+  let sqlQueryNext = 'SELECT * FROM notes WHERE (date = ${date}) AND (behaviour = "${behaviour}") AND (flock_size = ${flock_size});'
+  pool.query(sqlQueryNext, (error, result)=> {
+      if (error) {
+      console.log('Error executing query', error.stack);
+      response.status(503).send(result.rows);
+      return;
+      } else {
+      console.log(` the new report results`, result.rows);
+      }
+      details = result.rows;
+      index = details[0].id;
+      console.log(`the new entry is`, details);
+      // response.render(`single_note`, {details:details, ind:index});
+      response.send("it works")
+  });
+
 });
 
 // set port to listen
