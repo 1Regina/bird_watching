@@ -39,8 +39,11 @@ app.get('/', (request, response) => {
       response.status(503).send(result.rows);
       return;
     }
-    console.log(result.rows[0].behaviour);
-    response.send(result.rows);
+    // console.log(result.rows[0].behaviour);
+    // response.send(result.rows);
+    let data = result.rows
+    // put in an object so can use the key-value
+    response.render(`listing`, {data});
   };
 
     // Query using pg.Pool instead of pg.Client
@@ -79,6 +82,7 @@ if (command === "insertDate") {
   const insertDatesText = `UPDATE notes SET date = '${now}' WHERE id = ${process.argv[3]}`;
   pool.query(insertDatesText, whenInsertQueryDone);
 }
+
 
 
 // set port to listen

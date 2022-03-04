@@ -1,12 +1,12 @@
 .jumbotron {
-  background-color: rgba(24, 23, 23, 20);
-  margin: 0px 20px;
+  background-color: rgba(24, 23, 23, 0);
+  margin: 0px 10px;
   /* border: white solid 10px; */
-  /* background-image: url('https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSkSPO2lfiemQ9I25I2Yp2m9FW6kXBfEXxp4Q&usqp=CAU'); */
+  /* background-image: url('https://cdn.wallpapersafari.com/26/86/JVBmGR.jpg'); */
   background-repeat: no-repeat;
   /* color:darkgrey; */
   height:200px;
-  /* background-size: 100%; */
+  background-size: 100%;
   font-weight: 100;
   font-family: Haettenschweiler, 'Arial Narrow Bold', sans-serif;
 }
@@ -20,8 +20,10 @@
 }
 
 body {
-  background: url('https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcR8GINt3ms1K73vtwshOMi4X-AKE5l4KMV85Q&usqp=CAU') /* https://www.google.com/imgres?imgurl=https%3A%2F%2Fwww.birdlife.org%2Fwp-content%2Fuploads%2F2021%2F09%2Flittle_spiderhunter_c_noicherrybeans_shutterstock_smaller_1-1024x494.jpg&imgrefurl=https%3A%2F%2Fwww.birdlife.org%2Fnews%2F2019%2F01%2F04%2Fwhy-we-need-birds-far-more-than-they-need-us%2F&tbnid=J3ykByL2omIC7M&vet=12ahUKEwjv0MmsqKr2AhWYFLcAHfMjATUQMygfegUIARDBAg..i&docid=g9nENhBiFfxDcM&w=1024&h=494&q=birds&ved=2ahUKEwjv0MmsqKr2AhWYFLcAHfMjATUQMygfegUIARDBAg */ 
+  background: url('https://cdn.wallpapersafari.com/26/86/JVBmGR.jpg') 
+  /*https://www.birdlife.org/wp-content/uploads/2021/09/little_spiderhunter_c_noicherrybeans_shutterstock_smaller_1-1024x494.jpg */
   /*https://cdn.wallpapersafari.com/26/86/JVBmGR.jpg*/
+
     no-repeat center center fixed;
   -webkit-background-size: cover;
   -moz-background-size: cover;
