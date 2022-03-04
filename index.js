@@ -26,29 +26,10 @@ app.set('view engine', 'ejs');
 // Override POST requests with query param ?_method=PUT to be PUT requests
 app.use(methodOverride('_method'));
 
+// ====== POSTGRESQL
 // INSERT VALUES
 const command = process.argv[2]
 const inputData = process.argv.slice(3,5);
-
-app.get('/', (request, response) => {
-  console.log('request came in');
-
-  const whenDoneWithQuery = (error, result) => {
-    if (error) {
-      console.log('Error executing query', error.stack);
-      response.status(503).send(result.rows);
-      return;
-    }
-    // console.log(result.rows[0].behaviour);
-    // response.send(result.rows);
-    let data = result.rows
-    // put in an object so can use the key-value
-    response.render(`listing`, {data});
-  };
-
-    // Query using pg.Pool instead of pg.Client
-    pool.query('SELECT * from notes', whenDoneWithQuery);
-});
 
 // General callback
 const whenInsertQueryDone = (error, result) => {
@@ -83,7 +64,52 @@ if (command === "insertDate") {
   pool.query(insertDatesText, whenInsertQueryDone);
 }
 
+// ====== EJS
+// MAIN PAGE
+app.get('/', (request, response) => {
+  console.log('request came in');
 
+  const whenDoneWithQuery = (error, result) => {
+    if (error) {
+      console.log('Error executing query', error.stack);
+      response.status(503).send(result.rows);
+      return;
+    }
+    // console.log(result.rows[0].behaviour);
+    // response.send(result.rows);
+    let data = result.rows
+    // put in an object so can use the key-value
+    response.render(`listing`, {data});
+  };
+
+    // Query using pg.Pool instead of pg.Client
+    pool.query('SELECT * from notes', whenDoneWithQuery);
+});
+
+// SINGLE SIGHTING PAGE
+app.get('/note/:id', (request, response) => {
+  console.log('request came in');
+
+  const whenDoneWithQuery = (error, result) => {
+    if (error) {
+      console.log('Error executing query', error.stack);
+      response.status(503).send(result.rows);
+      return;
+    }
+    let index = request.query
+    let data = result.rows
+    let details
+    for (let i =0; i< data.length; i+=1) {
+      details = data[i]
+      console.log(`this is details`, details)
+    }
+    // put in an object so can use the key-value
+    response.render(`single_note`, {details:details, ind:index});
+  };
+
+    // Query using pg.Pool instead of pg.Client
+    pool.query('SELECT * from notes', whenDoneWithQuery);
+});
 
 // set port to listen
 app.listen(port)
