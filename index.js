@@ -176,11 +176,26 @@ app.get('/note/:index/edit', (req,res) =>{
       response.status(503).send(result.rows);
       return;
     }
-    const oneNote = result.rows[0]
-    const details = {oneNote}
+    const oneNote = result.rows[0];
+    const details = {oneNote};
     console.log(`details`, details);
     res.render(`editForm`, details);
   })
 });
+
+app.put('/note/:index/edit', (req,res) =>{
+  const {index} = req.params;
+  console.log(`index is`, index)
+  console.log(`the form entire info`, req.body)
+
+  // UPDATE table_name
+  // SET column1 = value1, column2 = value2, ...
+  // WHERE condition;
+
+  // sqlQuery = `UPDATE notes SET ` 
+
+})
 // set port to listen
 app.listen(port)
+
+

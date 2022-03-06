@@ -8,19 +8,22 @@
  <body> -->
    <%- include('navigator_bar') -%>
     <div class="container">
-        <h1>Edit record</h1> 
+        <h1>Edit Sighting <%=oneNote.id-1%></h1> 
          <br>
+      
          <form action="/note/<%=oneNote.id%>/edit?_method=PUT" method="POST">
         <% for (const [key,value] of Object.entries(oneNote)) {%> 
           <% if (!(key==="OBSERVED")){%>
+            <% if (!(key==="id")) {%>
             <label for="<%= key %>"><h6><%= key %></h6></label><br />
-            <input type="text" id="<%key%>" name="<%=key%>" value="<%=value%>"      
-            /><br /> <br />
+            <input type="text" id="<%key%>" name="<%=key%>" value="<%=value%>"  
+            <%}%>    
+              <br> <br>
             <%}else{%>
-            <textarea id="observed" rows="10" cols="70" name="OBSERVED"></textarea><br /> <br />
+            <textarea id="observed" rows="10" cols="70" name="OBSERVED"></textarea><br> <br>
             <%}%>
           <%}%>
-     
+         <br> <br>     
         <input type="submit" value="Submit" />
       </form>
     </div>
