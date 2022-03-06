@@ -94,7 +94,7 @@ app.get('/', (request, response) => {
   };
 
     // Query using pg.Pool instead of pg.Client
-    pool.query('SELECT * FROM notes;', whenDoneWithQuery);
+    pool.query('SELECT * FROM notes ORDER BY id;', whenDoneWithQuery);
 });
 
 // SINGLE SIGHTING PAGE
@@ -180,7 +180,7 @@ app.get('/note/:index/edit', (req,res) =>{
     const details = {oneNote};
     const ind  = oneNote.id
     console.log(`details`, details);
-    res.render(`editForm`, {oneNote, id:ind});
+    res.render(`editForm`, {oneNote});
   })
 });
 
@@ -191,8 +191,8 @@ app.put('/note/:index_a/edit', (req,res) =>{
 
   // UPDATE 
   let newData = req.body
-  
-  sqlQuery = `UPDATE notes SET date = ${newData.date}, behaviour = ${newData.behaviour}, flock_size = ${newData.flock_size} WJERE id = ${index_a}` 
+
+  sqlQuery = `UPDATE notes SET date = '${newData.date}', behaviour = '${newData.behaviour}', flock_size = '${newData.flock_size}' WHERE id = '${index_a}';` 
   console.log(`the query is `, sqlQuery)
   pool.query(sqlQuery, whenQueryDone)
 
@@ -202,6 +202,21 @@ app.put('/note/:index_a/edit', (req,res) =>{
 
   res.render (`single_note`, {details, ind: index_a});
 })
+
+
+app.delete('/note/:index/delete', (request, response) => {
+  console.log(`aaaaaaaaaaaa`)
+  const { index } = request.params;
+  sqlQuery = `DELETE FROM notes WHERE id = ${index}`
+  console.log(`The query to delete`, sqlQuery)
+  pool.query(sqlQuery, (err, results) => {
+    if (err) {
+      console.log(`Check your query again`)
+    }
+
+  })
+  response.send("Delete Succesfully")
+});
 // set port to listen
 app.listen(port)
 

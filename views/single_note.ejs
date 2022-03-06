@@ -16,7 +16,7 @@
                <div class="col-sm-12 text-right">
                   <div class="btn-group btn-group-toggle" data-toggle="buttons">
                    <% let update_id = `update ${ind}` %>
-                      <form action="/sighting/<%=ind%>/edit" method="GET">
+                      <form action="/note/<%=ind%>/edit" method="GET">
                         <input type="submit" value="Update" <%=id= update_id %> class="btn btn-dark"/>   
                           </form>   
                             <% let delete_id = `delete ${ind}` %>
