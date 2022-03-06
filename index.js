@@ -169,7 +169,8 @@ app.post('/note',(request, response) => {
 // Display the sighting to edit
 app.get('/note/:index/edit', (req,res) =>{
   const {index} = req.params // req.params is an object..destructuring
-  sqlQuery = `SELECT * FROM notes WHERE id = ${index};`
+  sqlQuery = `SELECT * FROM notes WHERE id = '${index}';`
+  console.log('sql statement', sqlQuery)
   pool.query(sqlQuery,(error, result) => {
     if (error) {
       console.log('Error executing query', error.stack);
@@ -178,7 +179,7 @@ app.get('/note/:index/edit', (req,res) =>{
     }
     const oneNote = result.rows[0];
     const details = {oneNote};
-    const ind  = oneNote.id
+   
     console.log(`details`, details);
     res.render(`editForm`, {oneNote});
   })
