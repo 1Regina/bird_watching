@@ -1,4 +1,4 @@
-import express, { request, response } from 'express';
+import express from 'express';
 import read, {add} from './jsonFileStorage.js';
 import methodOverride from 'method-override';
 import pg from 'pg';
@@ -41,6 +41,27 @@ const whenInsertQueryDone = (error, result) => {
       // Basic
       console.log(`report results`, result.rows);
     }
+};
+const handleQueryError = (queryError) => {
+  console.error('You messed up: ', queryError);
+  client.end();
+};
+
+const handleEmptyResult = () => {
+  console.log('no results!');
+  client.end();
+};
+
+const whenQueryDone = (error, result) => {
+  if (error) {
+    handleQueryError(error);
+    return;
+  }
+
+  if (queryResult.rows.length <= 0) {
+    handleEmptyResult;
+    return;
+  }
 };
 
 let sqlQuery = '';
@@ -125,37 +146,63 @@ app.get('/note', (request, response) => {
 // Save new sighting data sent via POST request from our form
 app.post('/note',(request, response) => {
   console.log(`before add sighting`)
-  let formData = []
-  let date = request.body.DATE;
+  let date = new Date(request.body.DATE).toLocaleDateString('en-GB', {day: 'numeric', month: 'short', year: 'numeric'}).replace(/ /g, '-');
+  console.log(`type of Date input before SQL input`, typeof date)
   let behaviour = request.body.BEHAVIOUR;
   let flock_size = request.body.FLOCK_SIZE;
-  let details 
-  let index
-  formData.push(date);
-  formData.push(behaviour);
-  formData.push(flock_size);
-  console.log('formData INPUT are', formData)
-  sqlQuery = 'INSERT INTO notes (date, behaviour, flock_size) VALUES ($1, $2, $3);';
-  pool.query(sqlQuery, formData, whenInsertQueryDone);
+  const formData = [date, behaviour, flock_size]
 
-  // redirect to display new recording
-  let sqlQueryNext = 'SELECT * FROM notes WHERE (date = ${date}) AND (behaviour = "${behaviour}") AND (flock_size = ${flock_size});'
-  pool.query(sqlQueryNext, (error, result)=> {
-      if (error) {
-      console.log('Error executing query', error.stack);
-      response.status(503).send(result.rows);
+  let entryQuery = 'INSERT INTO notes (date, behaviour, flock_size) VALUES ($1, $2, $3) returning id;';
+  pool.query(entryQuery, formData, (entryError, entryResult) => {
+    if (entryError) {
+      console.log('error', entryError);
+    } else {
+      console.log('note id:', entryResult.rows);
+      const noteId = entryResult.rows[0].id;
+      console.log(noteId);
+    }  
+
+      // redirect to display new recording
+      let sqlQueryNext = 'SELECT * FROM notes WHERE id = id;'
+      
+      pool.query(sqlQueryNext, (queryError, queryresult) => {
+      if (queryError) {
+      console.log('Error executing query', queryError.stack);
+      response.status(503).send(queryresult.rows);
       return;
       } else {
-      console.log(` the new report results`, result.rows);
+      console.log(` the new report results`, queryresult.rows);
       }
-      details = result.rows;
-      index = details[0].id;
+      let details = queryresult.rows[0];
+      let ind = details.id;
       console.log(`the new entry is`, details);
-      // response.render(`single_note`, {details:details, ind:index});
-      response.send("it works")
+      response.redirect(`/note/${ind}`);
+      // response.send("it works")
+      })    
   });
 
 });
 
+// EDIT FORM
+// Display the sighting to edit
+app.get('/note/:index/edit', (req,res) =>{
+
+ read(`data.json`, (error, jsonObjContent) => {
+  if (error) {
+   console.error(`read error`, error);
+   return;
+   }
+  const {index} = req.params // req.params is an object..destructuring
+  console.log(`type of req.params`, typeof req.params)
+  console.log(req.params)
+  console.log(`type of index`, typeof index)
+  console.log(index)
+  const oneSighting = jsonObjContent.sightings[index];
+  oneSighting.index = index
+  const details = {oneSighting}
+  console.log(`details`, details);
+  res.render(`editForm`, details);
+  });
+});
 // set port to listen
 app.listen(port)
