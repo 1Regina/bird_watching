@@ -168,26 +168,19 @@ app.post('/note',(request, response) => {
 // EDIT FORM
 // Display the sighting to edit
 app.get('/note/:index/edit', (req,res) =>{
-  const {index} = req.params
-  sqlQuery = `SELECT * FROM notes WHERE id = ${index};`
-  pool.query()
-
- read(`data.json`, (error, jsonObjContent) => {
-  if (error) {
-   console.error(`read error`, error);
-   return;
-   }
   const {index} = req.params // req.params is an object..destructuring
-  console.log(`type of req.params`, typeof req.params)
-  console.log(req.params)
-  console.log(`type of index`, typeof index)
-  console.log(index)
-  const oneSighting = jsonObjContent.sightings[index];
-  oneSighting.index = index
-  const details = {oneSighting}
-  console.log(`details`, details);
-  res.render(`editForm`, details);
-  });
+  sqlQuery = `SELECT * FROM notes WHERE id = ${index};`
+  pool.query(sqlQuery,(error, result) => {
+    if (error) {
+      console.log('Error executing query', error.stack);
+      response.status(503).send(result.rows);
+      return;
+    }
+    const oneNote = result.rows[0]
+    const details = {oneNote}
+    console.log(`details`, details);
+    res.render(`editForm`, details);
+  })
 });
 // set port to listen
 app.listen(port)

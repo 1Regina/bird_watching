@@ -10,7 +10,7 @@
     <div class="container">
         <h1>Edit record</h1> 
          <br>
-         <form action="/note/<%=oneNote.index%>/edit?_method=PUT" method="POST">
+         <form action="/note/<%=oneNote.id%>/edit?_method=PUT" method="POST">
         <% for (const [key,value] of Object.entries(oneNote)) {%> 
           <% if (!(key==="OBSERVED")){%>
             <label for="<%= key %>"><h6><%= key %></h6></label><br />
