@@ -173,27 +173,34 @@ app.get('/note/:index/edit', (req,res) =>{
   pool.query(sqlQuery,(error, result) => {
     if (error) {
       console.log('Error executing query', error.stack);
-      response.status(503).send(result.rows);
-      return;
+      // response.status(503).send(result.rows);
+      // return;
     }
     const oneNote = result.rows[0];
     const details = {oneNote};
+    const ind  = oneNote.id
     console.log(`details`, details);
-    res.render(`editForm`, details);
+    res.render(`editForm`, {oneNote, id:ind});
   })
 });
 
-app.put('/note/:index/edit', (req,res) =>{
-  const {index} = req.params;
-  console.log(`index is`, index)
+app.put('/note/:index_a/edit', (req,res) =>{
+  const {index_a} = req.params;
+  console.log(`index is`, index_a)
   console.log(`the form entire info`, req.body)
 
-  // UPDATE table_name
-  // SET column1 = value1, column2 = value2, ...
-  // WHERE condition;
+  // UPDATE 
+  let newData = req.body
+  
+  sqlQuery = `UPDATE notes SET date = ${newData.date}, behaviour = ${newData.behaviour}, flock_size = ${newData.flock_size} WJERE id = ${index_a}` 
+  console.log(`the query is `, sqlQuery)
+  pool.query(sqlQuery, whenQueryDone)
 
-  // sqlQuery = `UPDATE notes SET ` 
+  // extract data to display 
+  
+  let details = newData
 
+  res.render (`single_note`, {details, ind: index_a});
 })
 // set port to listen
 app.listen(port)

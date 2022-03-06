@@ -8,7 +8,7 @@
  <body> -->
    <%- include('navigator_bar') -%>
     <div class="container">
-        <h1>Edit Sighting <%=oneNote.id-1%></h1> 
+        <h1>Edit Sighting <%=oneNote.id%></h1> 
          <br>
       
          <form action="/note/<%=oneNote.id%>/edit?_method=PUT" method="POST">
@@ -18,7 +18,7 @@
             <label for="<%= key %>"><h6><%= key %></h6></label><br />
             <input type="text" id="<%key%>" name="<%=key%>" value="<%=value%>"  
             <%}%>    
-              <br> <br>
+              <br> <br> <br>
             <%}else{%>
             <textarea id="observed" rows="10" cols="70" name="OBSERVED"></textarea><br> <br>
             <%}%>
