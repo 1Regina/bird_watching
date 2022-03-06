@@ -160,33 +160,34 @@ app.post('/note',(request, response) => {
       console.log('note id:', entryResult.rows);
       const noteId = entryResult.rows[0].id;
       console.log(noteId);
+      response.redirect(`/note/${noteId}`);
     }  
 
       // redirect to display new recording
-      let sqlQueryNext = 'SELECT * FROM notes WHERE id = id;'
+      // let sqlQueryNext = 'SELECT * FROM notes WHERE id = id;'
       
-      pool.query(sqlQueryNext, (queryError, queryresult) => {
-      if (queryError) {
-      console.log('Error executing query', queryError.stack);
-      response.status(503).send(queryresult.rows);
-      return;
-      } else {
-      console.log(` the new report results`, queryresult.rows);
-      }
-      let details = queryresult.rows[0];
-      let ind = details.id;
-      console.log(`the new entry is`, details);
-      response.redirect(`/note/${ind}`);
-      // response.send("it works")
-      })    
+      // pool.query(sqlQueryNext, (queryError, queryresult) => {
+      // if (queryError) {
+      // console.log('Error executing query', queryError.stack);
+      // response.status(503).send(queryresult.rows);
+      // return;
+      // } else {
+      // console.log(` the new report results`, queryresult.rows);
+      // }
+      // let details = queryresult.rows[0];
+      // let ind = details.id;
+      // console.log(`the new entry is`, details);
+      // response.redirect(`/note/${ind}`);
+      // // response.send("it works")
+      // })    
   });
-
 });
 
 // EDIT FORM
 // Display the sighting to edit
 app.get('/note/:index/edit', (req,res) =>{
 
+  
  read(`data.json`, (error, jsonObjContent) => {
   if (error) {
    console.error(`read error`, error);
