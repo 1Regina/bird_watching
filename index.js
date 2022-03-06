@@ -2,6 +2,7 @@ import express from 'express';
 import read, {add} from './jsonFileStorage.js';
 import methodOverride from 'method-override';
 import pg from 'pg';
+import e from 'express';
 
 // Initialise DB connection
 const { Pool } = pg;
@@ -32,44 +33,27 @@ const command = process.argv[2]
 const inputData = process.argv.slice(3,5);
 
 // General callback
-const whenInsertQueryDone = (error, result) => {
+const whenQueryDone = (error, result) => {
     // this error is anything that goes wrong with the query
     if (error) {
       console.log('error', error);
+      
+    } else if (result.rows.length <= 0) {
+      console.log('no results!');
+      return;
     } else {
       // rows key has the data
       // Basic
       console.log(`report results`, result.rows);
     }
 };
-const handleQueryError = (queryError) => {
-  console.error('You messed up: ', queryError);
-  client.end();
-};
-
-const handleEmptyResult = () => {
-  console.log('no results!');
-  client.end();
-};
-
-const whenQueryDone = (error, result) => {
-  if (error) {
-    handleQueryError(error);
-    return;
-  }
-
-  if (queryResult.rows.length <= 0) {
-    handleEmptyResult;
-    return;
-  }
-};
 
 let sqlQuery = '';
-// -------------BASE Enter a meal
+// -------------BASE Enter data easily at start
 if (command === 'log') {
   console.log(`inputData array`, inputData)
   sqlQuery = 'INSERT INTO notes (behaviour, flock_size) VALUES ($1, $2);';
-  pool.query(sqlQuery, inputData, whenInsertQueryDone);
+  pool.query(sqlQuery, inputData, whenQueryDone);
 }
 
 // INSERT DATE
@@ -82,13 +66,13 @@ if (command === "insertDate") {
   console.log(`process.agrv[3]`, typeof process.argv[3], process.argv[3])
   // USE edit to populate the table
   const insertDatesText = `UPDATE notes SET date = '${now}' WHERE id = ${process.argv[3]};`;
-  pool.query(insertDatesText, whenInsertQueryDone);
+  pool.query(insertDatesText, whenQueryDone);
 }
 
 // REPORT
 if (command === "report") { 
   const sqlQuery= `SELECT * FROM notes;`;
-  pool.query(sqlQuery, whenInsertQueryDone);
+  pool.query(sqlQuery, whenQueryDone);
 }
 
 // ====== EJS
@@ -116,26 +100,24 @@ app.get('/', (request, response) => {
 // SINGLE SIGHTING PAGE
 app.get('/note/:id', (request, response) => {
   console.log('request came in');
-
-  const whenDoneWithQuery = (error, result) => {
-    if (error) {
-      console.log('Error executing query', error.stack);
-      response.status(503).send(result.rows);
-      return;
-    }
-    let index = request.query
-    let data = result.rows
-    let details
-    for (let i =0; i< data.length; i+=1) {
-      details = data[i]
-      console.log(`this is details`, details)
-    }
-    // put in an object so can use the key-value
-    response.render(`single_note`, {details:details, ind:index});
-  };
-
+  let index = request.params
+  console.log(`request is index`, index)
+  let singleQuery = `SELECT * from notes WHERE id = ${index.id};`
+  console.log(`Single Query`, singleQuery)
     // Query using pg.Pool instead of pg.Client
-    pool.query('SELECT * from notes;', whenDoneWithQuery);
+    pool.query(`SELECT * from notes WHERE id = ${index.id};`, (error, queryResult) => {
+      if (error) {
+        console.log('Error executing query', error);
+      };
+    console.log(`queryResult`, queryResult) 
+    let details = queryResult.rows[0]
+    console.log(`details are`, details)
+  
+ 
+   // put in an object so can use the key-value
+    response.render(`single_note`, {details:details, ind:index});
+  });
+
 });
 
 // NEW SIGHTING PAGE
@@ -186,8 +168,10 @@ app.post('/note',(request, response) => {
 // EDIT FORM
 // Display the sighting to edit
 app.get('/note/:index/edit', (req,res) =>{
+  const {index} = req.params
+  sqlQuery = `SELECT * FROM notes WHERE id = ${index};`
+  pool.query()
 
-  
  read(`data.json`, (error, jsonObjContent) => {
   if (error) {
    console.error(`read error`, error);
