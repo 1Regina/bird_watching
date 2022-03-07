@@ -51,15 +51,15 @@
           </thead>
         </table>
               
-            <%let index=data.length %>
-            <% for(let i=0; i < index; i +=1) { %>
+            <%let numOfRec=data.length %>
+            <% for(let i=0; i < numOfRec; i +=1) { %>
             <!-- <ul> -->
              <!-- <div class="container"> -->
              <div class="shadow p-3 mb-5 bg-white rounded">
                 <div class="row">
                   
                   <div class="col-sm-2">
-                    <% let url = `/note/${i+1}` %> <% let text = `Sighting ${i+1}` %>
+                    <% let url = `/note/${data[i].id}` %> <% let text = `Sighting ${i+1}` %>
                     <a href="<%=url %>"><%=text %></a>
                   </div> 
                   
