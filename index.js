@@ -101,12 +101,12 @@ app.get('/', (request, response) => {
 // SINGLE SIGHTING PAGE
 app.get('/note/:id', (request, response) => {
   console.log('request came in');
-  let index = request.params
+  let index = request.params.id
   console.log(`request is index`, index)
-  let singleQuery = `SELECT * from notes WHERE id = ${index.id};`
+  let singleQuery = `SELECT * from notes WHERE id = ${index};`
   console.log(`Single Query`, singleQuery)
     // Query using pg.Pool instead of pg.Client
-    pool.query(`SELECT * from notes WHERE id = ${index.id};`, (error, queryResult) => {
+    pool.query(`SELECT * from notes WHERE id = ${index};`, (error, queryResult) => {
       if (error) {
         console.log('Error executing query', error);
       };
