@@ -82,8 +82,9 @@ app.get('/', (request, response) => {
 
   const whenDoneWithQuery = (error, result) => {
     if (error) {
-      console.log('Error executing query', error.stack);
-      response.status(503).send(result.rows);
+      // console.log('Error executing query', error.stack);
+      console.log('Error executing query', error);
+      // response.status(503).send(result.rows);
       return;
     }
     // console.log(result.rows[0].behaviour);

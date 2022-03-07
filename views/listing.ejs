@@ -59,7 +59,7 @@
                 <div class="row">
                   
                   <div class="col-sm-2">
-                    <% let url = `/note/${i}` %> <% let text = `Sighting ${i+1}` %>
+                    <% let url = `/note/${i+1}` %> <% let text = `Sighting ${i+1}` %>
                     <a href="<%=url %>"><%=text %></a>
                   </div> 
                   
@@ -80,7 +80,7 @@
 
                   <div class="col-sm-1">
                <% let update_id = `update ${i}` %>
-                <form action="/note/<%=i%>/edit" method="GET">
+                <form action="/note/<%=i+1%>/edit" method="GET">
                 <input type="submit" value="Update" <%=id= update_id %>/>   
                 </form>   
                   </div>      
