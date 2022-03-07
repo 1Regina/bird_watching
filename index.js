@@ -219,6 +219,82 @@ app.delete('/note/:index/delete', (request, response) => {
   })
   response.send("Delete Succesfully")
 });
+
+
+// method 2: better. sort listing by chosen parameter
+function dynamicAscSort(property) {
+    var sortOrder = 1;
+    if(property[0] === "-") {
+        sortOrder = -1;
+        property = property.substr(1);
+    }
+    return function (a,b) {
+        /* next line works with strings and numbers, 
+         * and you may want to customize it to your needs
+         */
+        var result = (a[property] < b[property]) ? -1 : (a[property] > b[property]) ? 1 : 0;
+        return result * sortOrder;
+    }
+}
+function dynamicDescSort(property) {
+    var sortOrder = 1;
+    if(property[0] === "-") {
+        sortOrder = -1;
+        property = property.substr(1);
+    }
+    return function (a,b) {
+        /* next line works with strings and numbers, 
+         * and you may want to customize it to your needs
+         */
+        var result = (a[property] < b[property]) ? 1 : (a[property] > b[property]) ? -1 : 0;
+        return result * sortOrder;
+    }
+}
+
+// sort function sort date, city and flock_size for the opening listing summary page at Main page
+const sortSummary = (req, res) => {
+ 
+  sqlQuery = `SELECT * FROM notes ORDER BY id ASC;`;
+  pool.query(sqlQuery, (queryError, queryResult) => {
+    if (queryError) {
+      console.log('Error executing query', error.stack);
+      response.status(503).send(queryResult.rows);
+      return;
+    } 
+    if (queryResult.rows.length === 0) {
+      response.status(403).send('no records!');
+      return;
+    }
+    let data = queryResult.rows
+    console.log(`results before sorting which is all is`, data)
+  
+
+  if (req.params.parameter==="date") {
+    const ascFn = (a,b)=> new Date(a.date) - new Date(b.date)
+    const descFn = (a,b)=> new Date(b.date) - new Date(a.date)
+    // sorting condition
+    data.sort(
+      req.params.sortHow === `asc` ? ascFn : descFn  
+      )
+  } else if (req.params.parameter==="behaviour") {
+  // const ascFn  = (a,b)=> {(String(a.behaviour).replace(/ /g, "_").toUpperCase()) >  (String(b.behaviour).replace(/ /g, "_").toUpperCase()) ? 1 : -1}
+  // const descFn = (a,b)=> {(String(a.behaviour).replace(/ /g, "_").toUpperCase()) <  (String(b.behaviour).replace(/ /g, "_").toUpperCase()) ? 1 : -1}
+
+    // sorting condition
+    data.sort(
+      req.params.sortHow === `asc` ? dynamicAscSort("behaviour") : dynamicDescSort("behaviour") 
+    )
+  } else if (req.params.parameter==="flock_size") {
+
+    // sorting condition
+    data.sort(
+      req.params.sortHow === `asc` ? dynamicAscSort("flock_size") : dynamicDescSort("flock_size") 
+      )
+  }  
+  res.render(`listing`, {data})
+  })
+}
+app.get(`/notes-sortby/:parameter/:sortHow`, sortSummary)
 // set port to listen
 app.listen(port)
 
