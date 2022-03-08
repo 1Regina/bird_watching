@@ -6,3 +6,15 @@ CREATE TABLE IF NOT EXISTS notes (
   behaviour TEXT,
   flock_size INTEGER
 );
+
+ALTER TABLE notes 
+  ADD COLUMN IF NOT EXISTS 
+    creator_id INTEGER;
+    
+
+CREATE TABLE  IF NOT EXISTS users (
+  id SERIAL PRIMARY KEY, 
+  user_name TEXT,
+  email TEXT, 
+  password TEXT
+);
