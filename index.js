@@ -2,6 +2,7 @@ import express from 'express';
 // import read, {add} from './jsonFileStorage.js';
 import methodOverride from 'method-override';
 import pg from 'pg';
+import jsSHA from 'jssha';
 
 
 // Initialise DB connection
@@ -36,10 +37,10 @@ const inputData = process.argv.slice(3,5);
 const whenQueryDone = (error, result) => {
     // this error is anything that goes wrong with the query
     if (error) {
-      console.log('error', error);
-      
-    } else if (result.rows.length <= 0) {
-      console.log('no results!');
+      console.log('Error executing query', error.stack);
+      return;      
+    } else if (result.rows.length === 0) {
+      console.log('login failed!');
       return;
     } else {
       // rows key has the data
@@ -215,7 +216,6 @@ app.delete('/note/:index/delete', (request, response) => {
     if (err) {
       console.log(`Check your query again`)
     }
-
   })
   response.send("Delete Succesfully")
 });
@@ -295,6 +295,89 @@ const sortSummary = (req, res) => {
   })
 }
 app.get(`/notes-sortby/:parameter/:sortHow`, sortSummary)
+
+
+//3 POCE6 User Auth
+app.get('/signup', (request, response) => {
+  response.render('signup');
+});
+
+app.post('/signUp', (request, response) => {
+  // initialise the SHA object
+  const shaObj = new jsSHA('SHA-512', 'TEXT', { encoding: 'UTF8' });
+  // input the password from the request to the SHA object
+  shaObj.update(request.body.password);
+  // get the hashed password as output from the SHA object
+  const hashedPassword = shaObj.getHash('HEX');
+
+  // store the hashed password in our DB
+  const values = [request.body.email, hashedPassword];
+  console.log(`values to post`, values)
+  pool.query(
+    'INSERT INTO users (email,password) VALUES ($1, $2)',
+    values,
+    (error, result) => {
+      whenQueryDone
+      const email = values[0]
+      return response.send (`User added : ${email}` );  
+    }
+  );
+});
+
+
+app.get('/login', (request, response) => {
+  response.render('loginForm');
+});
+
+app.post('/login', (request, response) => {
+  // retrieve the user entry using their email
+  const values = [request.body.email];
+  pool.query('SELECT * from users WHERE email=$1', values, (error, result) => {
+    // return if there is a query error
+    if (error) {
+      console.log('Error executing query', error.stack);
+      response.status(503).send(result.rows);
+      return;
+    }
+
+    // we didnt find a user with that email
+    if (result.rows.length === 0) {
+      // the error for incorrect email and incorrect password are the same for security reasons.
+      // This is to prevent detection of whether a user has an account for a given service.
+      response.status(403).send('login failed!');
+      return;
+    }
+
+    // get user record from results
+    const user = result.rows[0];
+    // initialise SHA object
+    const shaObj = new jsSHA('SHA-512', 'TEXT', { encoding: 'UTF8' });
+    // input the password from the request to the SHA object
+    shaObj.update(request.body.password);
+    // get the hashed value as output from the SHA object
+    const hashedPassword = shaObj.getHash('HEX');
+
+    // If the user's hashed password in the database does not match the hashed input password, login fails
+    if (user.password !== hashedPassword) {
+
+      // the error for incorrect email and incorrect password are the same for security reasons.
+      // This is to prevent detection of whether a user has an account for a given service.
+      response.status(403).send('login failed! Password is incorrect');
+      return;
+    }
+
+    // The user's password hash matches that in the DB and we authenticate the user.
+    response.cookie('loggedIn', true);
+    // response.send('logged in!');
+    response.redirect(`/`);
+  });
+});
+
+// LOG OUT clear cookie
+app.get("/logout", (request, response) => {
+  response.clearCookie("loggedIn");
+  response.redirect(`/`);
+});
 // set port to listen
 app.listen(port)
 
