@@ -2,6 +2,8 @@ import express from 'express';
 // import read, {add} from './jsonFileStorage.js';
 import methodOverride from 'method-override';
 import pg from 'pg';
+import cookieParser from "cookie-parser";
+import bodyParser from 'body-parser';
 import jsSHA from 'jssha';
 
 
@@ -19,6 +21,8 @@ const app = express();
 app.use(express.static('public'));
 // Configure Express to parse request body data into request.body
 app.use(express.urlencoded({ extended: false }));
+app.use(cookieParser());
+app.use(bodyParser.json());
 
 const port = 3004
 
@@ -134,9 +138,19 @@ app.post('/note',(request, response) => {
   console.log(`type of Date input before SQL input`, typeof date)
   let behaviour = request.body.BEHAVIOUR;
   let flock_size = request.body.FLOCK_SIZE;
-  const formData = [date, behaviour, flock_size]
+  let cookieUser = request.cookies.user
 
-  let entryQuery = 'INSERT INTO notes (date, behaviour, flock_size) VALUES ($1, $2, $3) returning id;';
+  let creator_id 
+  let findCookieUserQuery = `SELECT * FROM users WHERE email = '${cookieUser}';`
+  pool.query (findCookieUserQuery,(cookieErr, cookieResult)=> {
+    whenQueryDone(cookieErr, cookieResult)
+    // console.log(`xxxxxxxxxx`, cookieResult.rows[0])
+    creator_id = cookieResult.rows[0].id 
+    // console.log(`creator id from query`, creator_id)
+const formData = [date, behaviour, flock_size, creator_id]
+  console.log(`cccccccccccccccc`, formData)
+
+  let entryQuery = 'INSERT INTO notes (date, behaviour, flock_size , creator_id) VALUES ($1, $2, $3 , $4) RETURNING id;';
   pool.query(entryQuery, formData, (entryError, entryResult) => {
     if (entryError) {
       console.log('error', entryError);
@@ -165,6 +179,11 @@ app.post('/note',(request, response) => {
       // // response.send("it works")
       // })    
   });
+
+
+
+  })
+  
 });
 
 // EDIT FORM
@@ -302,7 +321,7 @@ app.get('/signup', (request, response) => {
   response.render('signup');
 });
 
-app.post('/signUp', (request, response) => {
+app.post('/signup', (request, response) => {
   // initialise the SHA object
   const shaObj = new jsSHA('SHA-512', 'TEXT', { encoding: 'UTF8' });
   // input the password from the request to the SHA object
@@ -311,10 +330,10 @@ app.post('/signUp', (request, response) => {
   const hashedPassword = shaObj.getHash('HEX');
 
   // store the hashed password in our DB
-  const values = [request.body.email, hashedPassword];
+  const values = [request.body.name, request.body.email, hashedPassword];
   console.log(`values to post`, values)
   pool.query(
-    'INSERT INTO users (email,password) VALUES ($1, $2)',
+    'INSERT INTO users (user_name,email,password) VALUES ($1, $2, $3)',
     values,
     (error, result) => {
       whenQueryDone
@@ -365,19 +384,36 @@ app.post('/login', (request, response) => {
       response.status(403).send('login failed! Password is incorrect');
       return;
     }
-
+   
     // The user's password hash matches that in the DB and we authenticate the user.
+    // setCookie('user', user.email, 1)
+    response.cookie('user', user.email);
     response.cookie('loggedIn', true);
-    // response.send('logged in!');
     response.redirect(`/`);
   });
 });
 
 // LOG OUT clear cookie
 app.get("/logout", (request, response) => {
+  response.clearCookie("user");
   response.clearCookie("loggedIn");
   response.redirect(`/`);
 });
+
+
+// ALTER TABLE OF NOTES
+if (command === "addCreatorId") {
+  const creatorNote = process.argv.slice(3,5);
+  console.log (creatorNote)
+  let insertNotesQuery =  `UPDATE notes 
+                           SET creator_id = $1 
+                           WHERE id = $2;`;
+  pool.query(insertNotesQuery, creatorNote, (entryError, entryResult) => {
+    whenQueryDone(entryError, entryResult);
+    console.log(`post creator id entry`, entryResult.rows)
+  })
+};
+
 // set port to listen
 app.listen(port)
 
