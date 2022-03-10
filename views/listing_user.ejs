@@ -30,8 +30,8 @@
         <div class="row">
           <div class="col-sm-12" style="padding-bottom: 30px;">
            
-            <h1>Welcome Back </h1> 
-            <h3>All Sightings</h3>
+            <h1>Hello <%=data[0].user_name%> </h1> 
+            <h5>All Sightings Submitted By You</h5>
             <br>
             <br>
         <table class="table table-dark">
@@ -61,7 +61,7 @@
                 <div class="row">
                   
                   <div class="col-sm-2">
-                    <% let url = `/note/${data[i].id}` %> <% let text = `Sighting ${i+1}` %>
+                    <% let url = `/note/${data[i].notes_id}` %> <% let text = `Sighting ${i+1}` %>
                     <a href="<%=url %>"><%=text %></a>
                   </div> 
                   
@@ -80,22 +80,20 @@
                     <span><%=flock_size%></span>
                   </div> 
 
-                  
                   <div class="col-sm-2 capitalize">
                     <% let user=data[i].user_name%>
                     <span><%=user%></span>
                   </div> 
                 
-
-                  <div class="col-sm-1">
+                
+                  <div class="col-sm-2">
                     <% let update_id = `update ${data[i].id}` %>
-                    <form action="/note/<%=data[i].id%>/edit" method="GET">
+                    <form action="/note/<%=data[i].notes_id%>/edit" method="GET">
                       <input type="submit" value="Update" <%=id= update_id %>/>   
                     </form>   
                   </div>      
 
  
-                  
                 </div>    
              </div>
              <!-- </div>        -->

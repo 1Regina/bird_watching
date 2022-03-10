@@ -7,6 +7,7 @@ import bodyParser from 'body-parser';
 import jsSHA from 'jssha';
 
 
+
 // Initialise DB connection
 const { Pool } = pg;
 const pgConnectionConfigs = {
@@ -46,11 +47,7 @@ const whenQueryDone = (error, result) => {
     } else if (result.rows.length === 0) {
       console.log('login failed!');
       return;
-    } else {
-      // rows key has the data
-      // Basic
-      // console.log(`report results`, result.rows);
-    }
+    } 
 };
 
 let sqlQuery = '';
@@ -71,13 +68,18 @@ if (command === "insertDate") {
   console.log(`process.agrv[3]`, typeof process.argv[3], process.argv[3])
   // USE edit to populate the table
   const insertDatesText = `UPDATE notes SET date = '${now}' WHERE id = ${process.argv[3]};`;
-  pool.query(insertDatesText, whenQueryDone);
+  pool.query(insertDatesText, (error, results)=> {
+    whenQueryDone(error,results)
+  });
 }
 
 // REPORT
 if (command === "report") { 
   const sqlQuery= `SELECT * FROM notes;`;
-  pool.query(sqlQuery, whenQueryDone);
+  pool.query(sqlQuery, (error, result) => {
+    whenQueryDone(error, result)
+    console.log(result.rows)
+  });
 }
 
 // ====== EJS
@@ -85,22 +87,44 @@ if (command === "report") {
 app.get('/', (request, response) => {
   console.log('request came in');
 
-  const whenDoneWithQuery = (error, result) => {
+  let searchQuery = `SELECT notes.id AS notes_id, notes.date, notes.behaviour, notes.flock_size, creator_id,
+                            users.id AS user_id, user_name
+                     FROM notes 
+                     INNER JOIN users  
+                     ON creator_id = users.id
+                     ORDER BY notes.id;`
+  pool.query(searchQuery, (error, result ) => {
     if (error) {
       // console.log('Error executing query', error.stack);
       console.log('Error executing query', error);
       // response.status(503).send(result.rows);
       return;
     }
-    // console.log(result.rows[0].behaviour);
-    // response.send(result.rows);
-    let data = result.rows
-    // put in an object so can use the key-value
-    response.render(`listing`, {data});
-  };
+    let data  = result.rows
 
-    // Query using pg.Pool instead of pg.Client
-    pool.query('SELECT * FROM notes ORDER BY id;', whenDoneWithQuery);
+      // https://stackoverflow.com/questions/7042340/error-cant-set-headers-after-they-are-sent-to-the-client
+    // if (request.cookies === null) {
+    //   console.log('qqqqqqqqqqqqqqqqqq')
+    //   response.render(`listing`, {data, loggerName: ""});
+    // } else if (request.cookies !== null)  {
+      // use cookie to find member name
+
+      /// SHOW MEMBER NAME
+        // const {userEmail} = request.cookies
+        // console.log(`aaaaaaaaaaaaaaaaacookie of user`, request.cookies)
+        // let findCookieUserQuery = `SELECT * FROM users WHERE email = '${userEmail}';`
+        // pool.query (findCookieUserQuery,(cookieErr, cookieResult)=> {
+        //     whenQueryDone(cookieErr, cookieResult)
+        //     console.log(`aaaaaaaaaaaa`, cookieResult.rows[0].user_name)
+        //     let name = cookieResult.rows[0].user_name
+        //     response.render(`listing`, {data, loggerName: name});        
+        // })
+      // } 
+     
+
+    response.render(`listing`, {data});
+      
+  })
 });
 
 // SINGLE SIGHTING PAGE
@@ -140,11 +164,11 @@ app.post('/note',(request, response) => {
   let flock_size = request.body.FLOCK_SIZE;
   // let cookieUser = request.cookies.user
   // console.log(`aaaaaaaaaaaaaaaaaaaaaacookieUser`, cookieUser)
-  const {user} = request.cookies
+  const {userEmail} = request.cookies
   // console.log(`aaaaaaaaaaaaaaaaacookie of user`, user)
 
   let creator_id 
-  let findCookieUserQuery = `SELECT * FROM users WHERE email = '${user}';`
+  let findCookieUserQuery = `SELECT * FROM users WHERE email = '${userEmail}';`
   pool.query (findCookieUserQuery,(cookieErr, cookieResult)=> {
     whenQueryDone(cookieErr, cookieResult)
     // console.log(`xxxxxxxxxx`, cookieResult.rows[0])
@@ -179,6 +203,7 @@ app.get('/note/:index/edit', (req,res) =>{
       // return;
     }
     const oneNote = result.rows[0];
+    console.log(`aaaaaaaaaaaaaaa`, oneNote)
     const details = {oneNote};
    
     console.log(`details`, details);
@@ -196,7 +221,9 @@ app.put('/note/:index_a/edit', (req,res) =>{
 
   sqlQuery = `UPDATE notes SET date = '${newData.date}', behaviour = '${newData.behaviour}', flock_size = '${newData.flock_size}' WHERE id = '${index_a}';` 
   console.log(`the query is `, sqlQuery)
-  pool.query(sqlQuery, whenQueryDone)
+  pool.query(sqlQuery, (error, results) => {
+    whenQueryDone(error, results)
+  })
 
   // extract data to display 
   
@@ -316,7 +343,7 @@ app.post('/signup', (request, response) => {
     'INSERT INTO users (user_name,email,password) VALUES ($1, $2, $3)',
     values,
     (error, result) => {
-      whenQueryDone
+      whenQueryDone(error, result)
       const email = values[0]
       return response.send (`User added : ${email}` );  
     }
@@ -368,15 +395,16 @@ app.post('/login', (request, response) => {
     // The user's password hash matches that in the DB and we authenticate the user.
     // setCookie('user', user.email, 1)
     response.cookie('userEmail', user.email);
-    response.cookie('loggedIn', true);
+    response.cookie('visit', true);
     response.redirect(`/`);
   });
 });
 
 // LOG OUT clear cookie
 app.get("/logout", (request, response) => {
-  response.clearCookie("user");
-  response.clearCookie("loggedIn");
+  response.clearCookie("userEmail");
+  response.clearCookie("visit");
+  // response.cookie('visit', false);
   response.redirect(`/`);
 });
 
@@ -393,6 +421,23 @@ if (command === "addCreatorId") {
     console.log(`post creator id entry`, entryResult.rows)
   })
 };
+
+app.get("/users/:id", (req, res) => {
+  let user_now = req.params.id
+  let searchQuery = `SELECT notes.id AS notes_id, notes.date, notes.behaviour, notes.flock_size, creator_id,
+                            users.id AS user_id, user_name
+                     FROM notes 
+                     INNER JOIN users  
+                     ON creator_id = users.id
+                     WHERE creator_id = ${user_now}
+                     ORDER BY notes.id;`
+  pool.query(searchQuery, (error, result ) => {
+    whenQueryDone(error, result);
+    let data = result.rows
+  console.log(`zzzzzz `, data)
+    res.render(`listing_user`, {data});
+  })                   
+})
 
 // set port to listen
 app.listen(port)
