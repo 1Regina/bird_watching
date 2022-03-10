@@ -49,7 +49,7 @@ const whenQueryDone = (error, result) => {
     } else {
       // rows key has the data
       // Basic
-      console.log(`report results`, result.rows);
+      // console.log(`report results`, result.rows);
     }
 };
 
@@ -115,7 +115,7 @@ app.get('/note/:id', (request, response) => {
       if (error) {
         console.log('Error executing query', error);
       };
-    console.log(`queryResult`, queryResult) 
+    // console.log(`queryResult`, queryResult.rows) 
     let details = queryResult.rows[0]
     console.log(`details are`, details)
   
@@ -138,52 +138,32 @@ app.post('/note',(request, response) => {
   console.log(`type of Date input before SQL input`, typeof date)
   let behaviour = request.body.BEHAVIOUR;
   let flock_size = request.body.FLOCK_SIZE;
-  let cookieUser = request.cookies.user
+  // let cookieUser = request.cookies.user
+  // console.log(`aaaaaaaaaaaaaaaaaaaaaacookieUser`, cookieUser)
+  const {user} = request.cookies
+  // console.log(`aaaaaaaaaaaaaaaaacookie of user`, user)
 
   let creator_id 
-  let findCookieUserQuery = `SELECT * FROM users WHERE email = '${cookieUser}';`
+  let findCookieUserQuery = `SELECT * FROM users WHERE email = '${user}';`
   pool.query (findCookieUserQuery,(cookieErr, cookieResult)=> {
     whenQueryDone(cookieErr, cookieResult)
     // console.log(`xxxxxxxxxx`, cookieResult.rows[0])
     creator_id = cookieResult.rows[0].id 
     // console.log(`creator id from query`, creator_id)
-const formData = [date, behaviour, flock_size, creator_id]
-  console.log(`cccccccccccccccc`, formData)
-
-  let entryQuery = 'INSERT INTO notes (date, behaviour, flock_size , creator_id) VALUES ($1, $2, $3 , $4) RETURNING id;';
-  pool.query(entryQuery, formData, (entryError, entryResult) => {
-    if (entryError) {
-      console.log('error', entryError);
-    } else {
-      console.log('note id:', entryResult.rows);
-      const noteId = entryResult.rows[0].id;
-      console.log(noteId);
-      response.redirect(`/note/${noteId}`);
-    }  
-
-      // redirect to display new recording
-      // let sqlQueryNext = 'SELECT * FROM notes WHERE id = id;'
-      
-      // pool.query(sqlQueryNext, (queryError, queryresult) => {
-      // if (queryError) {
-      // console.log('Error executing query', queryError.stack);
-      // response.status(503).send(queryresult.rows);
-      // return;
-      // } else {
-      // console.log(` the new report results`, queryresult.rows);
-      // }
-      // let details = queryresult.rows[0];
-      // let ind = details.id;
-      // console.log(`the new entry is`, details);
-      // response.redirect(`/note/${ind}`);
-      // // response.send("it works")
-      // })    
-  });
-
-
-
-  })
-  
+  const formData = [date, behaviour, flock_size, creator_id]
+    let entryQuery = `INSERT INTO notes (date, behaviour, flock_size , creator_id) 
+                                 VALUES ($1, $2, $3 , $4) 
+                                 RETURNING id;`;
+    pool.query(entryQuery, formData, (entryError, entryResult) => {
+      if (entryError) {
+        console.log('error', entryError);
+      } else {
+        const noteId = entryResult.rows[0].id;
+        console.log(noteId);
+        response.redirect(`/note/${noteId}`);
+      }  
+    });
+  })  
 });
 
 // EDIT FORM
@@ -387,7 +367,7 @@ app.post('/login', (request, response) => {
    
     // The user's password hash matches that in the DB and we authenticate the user.
     // setCookie('user', user.email, 1)
-    response.cookie('user', user.email);
+    response.cookie('userEmail', user.email);
     response.cookie('loggedIn', true);
     response.redirect(`/`);
   });
