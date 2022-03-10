@@ -152,7 +152,13 @@ app.get('/note/:id', (request, response) => {
 
 // NEW SIGHTING PAGE
 app.get('/note', (request, response) => {
-  response.render('new_note');
+  pool.query(`SELECT * FROM species`, (error, result)=>{
+    whenQueryDone(error, result)
+    const birds = { 
+      birdName : result.rows
+    };
+    response.render('new_note', birds );
+  })
 });
 
 // Save new sighting data sent via POST request from our form
@@ -160,12 +166,14 @@ app.post('/note',(request, response) => {
   console.log(`before add sighting`)
   let date = new Date(request.body.DATE).toLocaleDateString('en-GB', {day: 'numeric', month: 'short', year: 'numeric'}).replace(/ /g, '-');
   console.log(`type of Date input before SQL input`, typeof date)
-  let behaviour = request.body.BEHAVIOUR;
-  let flock_size = request.body.FLOCK_SIZE;
+  const behaviour = request.body.BEHAVIOUR;
+  const flock_size = request.body.FLOCK_SIZE;
+  const species = request.body.SPECIES;
   // let cookieUser = request.cookies.user
   // console.log(`aaaaaaaaaaaaaaaaaaaaaacookieUser`, cookieUser)
   const {userEmail} = request.cookies
   // console.log(`aaaaaaaaaaaaaaaaacookie of user`, user)
+
 
   let creator_id 
   let findCookieUserQuery = `SELECT * FROM users WHERE email = '${userEmail}';`
@@ -174,9 +182,9 @@ app.post('/note',(request, response) => {
     // console.log(`xxxxxxxxxx`, cookieResult.rows[0])
     creator_id = cookieResult.rows[0].id 
     // console.log(`creator id from query`, creator_id)
-  const formData = [date, behaviour, flock_size, creator_id]
-    let entryQuery = `INSERT INTO notes (date, behaviour, flock_size , creator_id) 
-                                 VALUES ($1, $2, $3 , $4) 
+  const formData = [date, behaviour, flock_size, creator_id, species]
+    let entryQuery = `INSERT INTO notes (date, behaviour, flock_size , creator_id, species) 
+                                 VALUES ($1, $2, $3 , $4, $5) 
                                  RETURNING id;`;
     pool.query(entryQuery, formData, (entryError, entryResult) => {
       if (entryError) {
@@ -439,6 +447,25 @@ app.get("/users/:id", (req, res) => {
   })                   
 })
 
+// ============= 3POCE7 
+// General info adding
+// if (command === "addInfo") {
+//   // const addDetails = process.argv.slice(3,6);
+//   const [ , , , table, aName, info] = process.argv ;
+//   const addDetails = [aName, info];  
+//   console.log (addDetails)
+//   let insertQuery =  `INSERT INTO ${table} (name, scientific_name) 
+//                       VALUES ($1, $2) 
+//                       RETURNING *`;
+//   pool.query(insertQuery, addDetails, (entryError, entryResult) => {
+//     whenQueryDone(entryError, entryResult);
+//     console.log(`New entry of record is`, entryResult.rows[0])
+//   })
+// };
+
+app.get('/species', (req, res) => {
+  res.render('new_species');
+})
 // set port to listen
 app.listen(port)
 

@@ -9,7 +9,9 @@ CREATE TABLE IF NOT EXISTS notes (
 
 ALTER TABLE notes 
   ADD COLUMN IF NOT EXISTS 
-    creator_id INTEGER;
+    creator_id INTEGER,
+  ADD COLUMN IF NOT EXISTS   
+    species TEXT;
     
 
 CREATE TABLE  IF NOT EXISTS users (
@@ -17,4 +19,11 @@ CREATE TABLE  IF NOT EXISTS users (
   user_name TEXT,
   email TEXT, 
   password TEXT
+);
+
+
+CREATE TABLE  IF NOT EXISTS species (
+  id SERIAL PRIMARY KEY, 
+  name TEXT,
+  scientific_name TEXT
 );

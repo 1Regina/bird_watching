@@ -19,6 +19,16 @@
         <div class="invalid-feedback">Please fill out this field.</div>
       <br>
 
+        <label for="specie" class="form-label "><h5>Species:</h5></label>
+        <div class = "w-50">
+          <select class="custom-select" id="specie" name = "SPECIE" required>
+            <option selected>Choose...</option>
+            <% birdName.forEach((species) => {%>
+            <option value = "<%= species.name %>"><%= species.name %></option>
+            <% }); %> 
+          </select>
+        </div>    
+      <br>
       <!-- <div class="mb-3 mt-3">
         <label for="behaviour" class="form-label"><h5>Behaviour</h5></label>
         <input type="text" class="form-control w-25" id="behaviour" placeholder="Enter the behaviour observed" name="BEHAVIOUR" required>
@@ -40,7 +50,7 @@
       <br>
       <div class="mb-3 mt-3">
         <label for="flock_size" class="form-label"><h5>Flock Size</h5></label>
-        <input type="number" min="1" class="form-control w-25" id="behavour" placeholder="Enter the flock size observed" name="FLOCK_SIZE" required>
+        <input type="number" min="1" class="form-control w-25" id="flock_size" placeholder="Enter the flock size observed" name="FLOCK_SIZE" required>
         <div class="valid-feedback">Valid.</div>
         <div class="invalid-feedback">Please fill out this field.</div>
       </div>
