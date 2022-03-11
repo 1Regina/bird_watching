@@ -239,7 +239,20 @@ app.get('/note/:index/edit', (req,res) =>{
     const details = {oneNote};
    
     console.log(`details`, details);     
-    res.render(`editForm`, {oneNote});
+
+    let speciesQuery = `SELECT * FROM species`;
+    pool.query(speciesQuery, (error1, result1) =>{
+      whenQueryDone(error1, result1);
+      // const birds = { 
+       let birds = result1.rows
+       details.birdName = birds
+      // }
+      // console.log(`aaaaa`, birds)
+      // console.log(`bbbbb`, {oneNote, birds})
+      console.log(`ccccc`, details)
+     res.render(`editForm`, details);
+    })
+ 
   })
 });
 
@@ -486,8 +499,42 @@ app.get("/users/:id", (req, res) => {
 //   })
 // };
 
+// Render form to enter new species
 app.get('/species', (req, res) => {
   res.render('new_species');
+})
+
+
+app.post('/species', (req, res) => {
+  let bird = [];
+  const {species} = req.body;
+  const {scientific_name} = req.body;
+  bird.push(species);
+  bird.push(scientific_name)
+  console.log(bird)
+  sqlQuery = `INSERT INTO species (name, scientific_name) 
+              VALUES ($1, $2);`;
+  pool.query(sqlQuery, bird, (error, result) =>{
+    whenQueryDone(error, result);
+    res.redirect('/species/all');
+  })            
+})
+
+
+app.get(`/species/:index`, (request,response) => {
+  const {index} = request.params
+  sqlQuery = `SELECT species.id AS species_id, name, scientific_name, 
+                     notes.id, date, behaviour, flock_size, creator_id, species
+              FROM species
+              INNER JOIN notes
+              ON species = name
+              WHERE species.id = ${index};`
+  pool.query(sqlQuery,(error, result) =>{
+    whenQueryDone(error, result);
+    let data = result.rows
+    console.log(data)
+    response.render("listing", {data})
+  })
 })
 // set port to listen
 app.listen(port)
