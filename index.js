@@ -87,7 +87,7 @@ if (command === "report") {
 app.get('/', (request, response) => {
   console.log('request came in');
 
-  let searchQuery = `SELECT notes.id, notes.date, notes.behaviour, notes.flock_size, creator_id,
+  let searchQuery = `SELECT notes.id, notes.date, notes.behaviour, notes.flock_size, creator_id, species,
                             users.id AS user_id, user_name
                      FROM notes 
                      INNER JOIN users  
@@ -248,8 +248,7 @@ app.get('/note/:index/edit', (req,res) =>{
        details.birdName = birds
       // }
       // console.log(`aaaaa`, birds)
-      // console.log(`bbbbb`, {oneNote, birds})
-      console.log(`ccccc`, details)
+      // console.log(`bbbbb`, {oneNote, birds})  
      res.render(`editForm`, details);
     })
  
@@ -520,6 +519,31 @@ app.post('/species', (req, res) => {
   })            
 })
 
+app.get(`/species/all`, (request, res) => {
+
+    sqlQuery = `SELECT species.id AS species_id, name, scientific_name, 
+                       notes.id, date, behaviour, flock_size, creator_id, species 
+                FROM species 
+                INNER JOIN notes 
+                ON notes.species = species.name`
+ 
+    pool.query(sqlQuery, (error, result) => {
+      whenQueryDone(error, result);
+      let data = result.rows      
+      let speciesArray = [];
+      for (let i=0; i< data.length; i +=1 ){
+        speciesArray.push(data[i].species)
+      }
+      speciesArray.sort()
+
+      console.log(`aaaaaaaaaa`,speciesArray)
+      let speciesCounterObject = speciesArray.reduce(function (acc, curr) {
+          return acc[curr] ? ++acc[curr] : acc[curr] = 1, acc
+          }, {});
+      console.log(speciesCounterObject)
+      res.render(`species`, {speciesCounterObject})
+    })
+})
 
 app.get(`/species/:index`, (request,response) => {
   const {index} = request.params
@@ -535,6 +559,44 @@ app.get(`/species/:index`, (request,response) => {
     console.log(data)
     response.render("listing", {data})
   })
+})
+
+app.get(`/species/:index/edit`, (request, response) => {
+  const {index} = request.params
+  sqlQuery = `SELECT * FROM species WHERE id = ${index};`
+  pool.query(sqlQuery, (error, result) => {
+    whenQueryDone(error, result);
+    const oneNote = result.rows[0];
+    const details = {oneNote};
+    console.log(details)
+    let speciesQuery = `SELECT * FROM species`;
+    pool.query(speciesQuery, (error1, result1) =>{
+      whenQueryDone(error1, result1);
+      // const birds = { 
+       let birds = result1.rows
+       details.birdName = birds
+    // response.render(`editForm`, {details});
+    response.render(`editForm_species`, details);
+    })
+  })
+})
+
+app.put(`/species/:index/edit`, (request, response) => {
+  const {index} = request.params
+  const data = request.body; 
+  console.log(`bbbb`,  request.body )
+  sqlQuery = `UPDATE species 
+              SET name = '${data.name}', 
+              scientific_name ='${data.scientific_name}' 
+              WHERE id = ${index} 
+              RETURNING *`
+  pool.query(sqlQuery, (error, result) =>{
+    whenQueryDone(error,result);
+    let details = result.rows[0]
+    // response.send(`asdasada`)
+    response.render(`single_species`, {details:details, ind:index});
+  })
+
 })
 // set port to listen
 app.listen(port)

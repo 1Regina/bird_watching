@@ -1,0 +1,32 @@
+<!-- <html>
+  <head>
+    <meta charset="UTF-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+      <title>Edit Form</title>
+    </head>
+ <body> -->
+   <%- include('navigator_bar') -%>
+    <div class="container">
+        <h1>Edit Species <%=oneNote.id%></h1> 
+         <br>
+      
+      <form action="/species/<%=oneNote.id%>/edit?_method=PUT" method="POST" class=".needs-validation">
+        <% for (const [key,value] of Object.entries(oneNote)) {%> 
+          <% if(!(key==="id")){%>
+             <label for="<%= key %>" class = "capitalize"><h6><%= key %></h6></label><br />           
+                <input type="text" class="form-control w-50 capitalize"  id="<%key%>" name="<%=key%>" value="<%=value%>"  required>
+                  <div class="valid-feedback">Valid.</div>
+                  <div class="invalid-feedback">Please fill out this field.</div>
+                </input>
+              <br>     
+              <br>    
+          <%}%>  
+        <%}%>
+
+        <!-- <input type="submit" value="Submit" /> -->
+        <button type="submit" class="btn btn-secondary">Submit</button>
+      </form>
+    </div>
+ </body>
+</html>
