@@ -27,3 +27,5 @@ CREATE TABLE  IF NOT EXISTS species (
   name TEXT,
   scientific_name TEXT
 );
+
+-- INSERT INTO species (name, scientific_name) VALUES ('Ruby-cheeked Sunbird', 'Chalcoparia singalensis'), ('Scarlet-breasted Flowerpecker', 'Prionochilus thoracicus'), ('Greater Green Leafbird', 'Chloropsis sonnerati'), ('Blue-and-white Flycatcher', 'Cyanoptila cyanomelana');
