@@ -14,16 +14,30 @@
       <form action="/note/<%=oneNote.id%>/edit?_method=PUT" method="POST">
         <% for (const [key,value] of Object.entries(oneNote)) {%> 
           <% if (!(key==="OBSERVED")){%>
-            <% if (!(key==="id") && !(key==="creator_id")) {%>
+            <% if (!(key==="id") && !(key==="creator_id") && !(key === "species")) {%>
               <label for="<%= key %>"><h6><%= key %></h6></label><br />
               <input type="text" id="<%key%>" name="<%=key%>" value="<%=value%>"  
+           
+            <%} else if (key === "species") {%>
+              <label for="species" class="form-label "><h5>Species:</h5></label>
+                <div class = "w-50">
+                   <select class="custom-select" id="species" name = "species" required>
+                    <option selected>Choose...</option>
+                    <% birdName.forEach((species) => {%>
+                      <option value = "<%= species.name %>"><%= species.name %></option>
+                    <% }); %> 
+                   </select>
+                </div>    
+              
             <%}%>    
-              <br> <br> <br>
+             <br>  
+             <br> 
+             <br>
           <%}else{%>
               <textarea id="observed" rows="10" cols="70" name="OBSERVED"></textarea><br> <br>
           <%}%>
         <%}%>
-        <br> <br>     
+
         <!-- <input type="submit" value="Submit" /> -->
         <button type="submit" class="btn btn-secondary">Submit</button>
       </form>
