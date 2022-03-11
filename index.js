@@ -87,7 +87,7 @@ if (command === "report") {
 app.get('/', (request, response) => {
   console.log('request came in');
 
-  let searchQuery = `SELECT notes.id AS notes_id, notes.date, notes.behaviour, notes.flock_size, creator_id,
+  let searchQuery = `SELECT notes.id, notes.date, notes.behaviour, notes.flock_size, creator_id,
                             users.id AS user_id, user_name
                      FROM notes 
                      INNER JOIN users  
@@ -101,6 +101,7 @@ app.get('/', (request, response) => {
       return;
     }
     let data  = result.rows
+    console.log(data)
 
       // https://stackoverflow.com/questions/7042340/error-cant-set-headers-after-they-are-sent-to-the-client
     // if (request.cookies === null) {
@@ -200,6 +201,30 @@ app.post('/note',(request, response) => {
 
 // EDIT FORM
 // Display the sighting to edit
+// Q1 ??????????????? WHY IS cookie checking failing
+// app.get('/note/:index/edit', (req,res) =>{
+//   if (req.cookies.loggedIn === true){
+//     const {index} = req.params // req.params is an object..destructuring
+//     const {userEmail} = req.cookies
+//     let matchCookieQuery = `SELECT email, users.id, notes.id, date, behaviour, flock_size, creator_id, species
+//                             FROM table users
+//                             INNER JOIN notes 
+//                             ON creator_id = users.id
+//                             WHERE notes.id = ${index} ;`
+//     pool.query(matchCookieQuery, (err, result) => {
+//       whenQueryDone(err, result);
+//       const oneNote = result.rows[0];
+    
+//       if (userEmail === result.rows[0].email){
+//         res.render(`editForm`, {oneNote});
+//       } else {
+//       res.send('You are not authorised to edit this post. ');
+//       }
+//     })        
+//   } else {
+//     res.send('You need to login in. Return to home page http://localhost:3004')
+//   }                 
+// })
 app.get('/note/:index/edit', (req,res) =>{
   const {index} = req.params // req.params is an object..destructuring
   sqlQuery = `SELECT * FROM notes WHERE id = '${index}';`
@@ -211,10 +236,9 @@ app.get('/note/:index/edit', (req,res) =>{
       // return;
     }
     const oneNote = result.rows[0];
-    console.log(`aaaaaaaaaaaaaaa`, oneNote)
     const details = {oneNote};
    
-    console.log(`details`, details);
+    console.log(`details`, details);     
     res.render(`editForm`, {oneNote});
   })
 });
@@ -227,7 +251,7 @@ app.put('/note/:index_a/edit', (req,res) =>{
   // UPDATE 
   let newData = req.body
 
-  sqlQuery = `UPDATE notes SET date = '${newData.date}', behaviour = '${newData.behaviour}', flock_size = '${newData.flock_size}' WHERE id = '${index_a}';` 
+  sqlQuery = `UPDATE notes SET date = '${newData.date}', behaviour = '${newData.behaviour}', flock_size = '${newData.flock_size}', species = '${newData.species}' WHERE id = '${index_a}';` 
   console.log(`the query is `, sqlQuery)
   pool.query(sqlQuery, (error, results) => {
     whenQueryDone(error, results)
@@ -403,7 +427,7 @@ app.post('/login', (request, response) => {
     // The user's password hash matches that in the DB and we authenticate the user.
     // setCookie('user', user.email, 1)
     response.cookie('userEmail', user.email);
-    response.cookie('visit', true);
+    response.cookie('loggedIn', true);
     response.redirect(`/`);
   });
 });
@@ -411,8 +435,7 @@ app.post('/login', (request, response) => {
 // LOG OUT clear cookie
 app.get("/logout", (request, response) => {
   response.clearCookie("userEmail");
-  response.clearCookie("visit");
-  // response.cookie('visit', false);
+  response.clearCookie("loggedIn");
   response.redirect(`/`);
 });
 
