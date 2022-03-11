@@ -1,0 +1,39 @@
+<!-- <!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"> -->
+  <title>New Species</title>
+<!-- </head>
+<body> -->
+  <%- include("navigator_bar") -%>
+  <div class="container">
+    <h1> Record A New Species</h1>
+    <br>
+    <form action = "/species" method="POST" class=".needs-validation">
+
+        <label for="species" class="form-label "><h5>Species:</h5></label>
+        <div class = "w-100">
+          <input type="text" class="form-control w-75"  id="species" placeholder="Enter the species sighted" name="species" required>
+                <div class="valid-feedback">Valid.</div>
+                <div class="invalid-feedback">Please fill out this field.</div>
+          </input>
+        </div>    
+      <br>
+      <br>
+
+         <label for="scientific_name" class="form-label "><h5>Scientific Name:</h5></label>
+        <div class = "w-100">
+          <input type="text" class="form-control w-75"  id="scientific_name" placeholder="Enter its Scientific Name" name="scientific_name" required>
+                <div class="valid-feedback">Valid.</div>
+                <div class="invalid-feedback">Please fill out this field.</div>
+          </input>
+        </div>    
+      <br>
+  
+       <button type="submit" class="btn btn-secondary">Submit</button>
+    </form>
+  </div>
+</body>
+</html>
