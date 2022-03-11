@@ -40,9 +40,10 @@
               <!-- <th scope="col"></th> -->
               <th scope="col">Index</th>
               <th scope="col"></th>
-              <th scope="col">Sighted On</th>
+              <th scope="col">Date</th>
               <th scope="col">Behaviour</th>
               <th scope="col">Flock Size</th>
+              <th scope="col">Species</th>
               <th scope="col">Creator</th>
               <th scope="col"></th>          
               <th scope="col">Action</th>
@@ -60,8 +61,8 @@
              <div class="shadow p-3 mb-5 bg-white rounded">
                 <div class="row">
                   
-                  <div class="col-sm-2">
-                    <% let url = `/note/${data[i].id}` %> <% let text = `Sighting ${i+1}` %>
+                  <div class="col-sm-1">
+                    <% let url = `/note/${data[i].id}` %> <% let text = `No. ${i+1}` %>
                     <a href="<%=url %>"><%=text %></a>
                   </div> 
                   
@@ -75,11 +76,15 @@
                     <span><%=behaviour%></span>
                   </div> 
 
-                  <div class="col-sm-2">
+                  <div class="col-sm-1">
                     <% let flock_size=data[i].flock_size%>
                     <span><%=flock_size%></span>
                   </div> 
 
+                  <div class="col-sm-2">
+                    <% let species=data[i].species%>
+                    <span><%=species%></span>
+                  </div> 
                   
                   <div class="col-sm-2 capitalize">
                     <% let user=data[i].user_name%>
