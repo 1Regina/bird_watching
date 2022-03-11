@@ -547,17 +547,19 @@ app.get(`/species/all`, (request, res) => {
 
 app.get(`/species/:index`, (request,response) => {
   const {index} = request.params
-  sqlQuery = `SELECT species.id AS species_id, name, scientific_name, 
-                     notes.id, date, behaviour, flock_size, creator_id, species
+  sqlQuery = `SELECT name, scientific_name
               FROM species
-              INNER JOIN notes
-              ON species = name
-              WHERE species.id = ${index};`
+              WHERE species.id = ${index}`
+  // sqlQuery = `SELECT species.id AS species_id, name, scientific_name, 
+  //                    notes.id, date, behaviour, flock_size, creator_id, species
+  //             FROM species
+  //             INNER JOIN notes
+  //             ON species = name
+  //             WHERE species.id = ${index}`
   pool.query(sqlQuery,(error, result) =>{
     whenQueryDone(error, result);
-    let data = result.rows
-    console.log(data)
-    response.render("listing", {data})
+    let details = result.rows[0]
+    response.render("single_species", {details:details, ind:index})
   })
 })
 
@@ -596,8 +598,19 @@ app.put(`/species/:index/edit`, (request, response) => {
     // response.send(`asdasada`)
     response.render(`single_species`, {details:details, ind:index});
   })
-
 })
+
+app.delete('/species/:index/delete', (request, response) => {
+  console.log(`aaaaaaaaaaaa`)
+  const { index } = request.params;
+  sqlQuery = `DELETE FROM species WHERE id = ${index}`
+  console.log(`The query to delete`, sqlQuery)
+  pool.query(sqlQuery, (err, results) => {
+   whenQueryDone(err,results)
+  })
+  response.send("Delete Succesfully")
+});
+
 // set port to listen
 app.listen(port)
 
