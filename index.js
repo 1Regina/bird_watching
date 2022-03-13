@@ -158,7 +158,15 @@ app.get('/note', (request, response) => {
     const birds = { 
       birdName : result.rows
     };
-    response.render('new_note', birds );
+
+    pool.query(`SELECT * FROM behaviours`, (erroring, resulting) => {
+      whenQueryDone(erroring, resulting);
+      birds.behaves = resulting.rows
+      console.log(birds)
+      response.render('new_note', birds);
+    })
+        
+    // response.render('new_note', birds);
   })
 });
 

@@ -35,17 +35,29 @@
         <div class="valid-feedback">Valid.</div>
         <div class="invalid-feedback">Please fill out this field.</div> -->
   
-        <label for="behaviour" class="form-label "><h5>Behaviour:</h5></label>
+        <label for="behaving" class="form-label "><h5>Behaviour:</h5></label>
         <div class = "w-25">
      
-          <select class="custom-select" id="behaviour" name="BEHAVIOUR" required >
+          <select class="custom-select" id="behaving" name="BEHAVING" required >
             <option selected>Choose...</option>
             <option value="bob_tail">bob tail</option>
             <option value="head_cock">head cock</option>
             <option value="wing_stretches">wing stretches</option>
           </select>
         </div>
+        <br>
       <!-- </div> -->
+
+       <label for="behaviour" class="form-label"><h5>Behaves:</h5></label>
+
+        <div class = "w-75 form-group col-md-6">
+            <% behaves.forEach((behave) => { %>                  
+                  <h5>
+                    <input type="checkbox" name="BEHAVIOUR" value="<%= behave.id %>" />
+                    <label><%= behave.action %></label>
+                  </h5>  
+            <% }); %>
+        </div>
 
       <br>
       <div class="mb-3 mt-3">
