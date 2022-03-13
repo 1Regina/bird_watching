@@ -520,42 +520,16 @@ app.post('/species', (req, res) => {
 })
 
 app.get(`/species/all`, (request, res) => {
-
-    sqlQuery = `SELECT species.id AS species_id, name, scientific_name, 
-                       notes.id, date, behaviour, flock_size, creator_id, species 
+    sqlQuery = `SELECT species.id AS species_id, name, COUNT(scientific_name)
                 FROM species 
                 INNER JOIN notes 
-                ON notes.species = species.name`
- 
+                ON notes.species = species.name
+                GROUP BY species_id, name`
     pool.query(sqlQuery, (error, result) => {
       whenQueryDone(error, result);
       let data = result.rows      
       console.log(`sssssss`, data)
-      let speciesArray = [];
-      for (let i=0; i< data.length; i +=1 ){
-        speciesArray.push(data[i].species)
-      }
-      speciesArray.sort()
-
-      console.log(`aaaaaaaaaa`,speciesArray)
-      let speciesCounterObject = speciesArray.reduce(function (acc, curr) {
-          return acc[curr] ? ++acc[curr] : acc[curr] = 1, acc
-          }, {});
-      console.log(`ccccc`,speciesCounterObject)
-      
-      // let birdName = {}
-      // for (const [key, value] of Object.entries(speciesCounterObject)){
-      //   let speciesQuery = `SELECT * FROM species WHERE name = '${key}'`;
-      //   pool.query(speciesQuery, (error1, result1)=>{
-      //     whenQueryDone(error1, result1);
-      //     birdName  = result1.rows[0] 
-      //     console.log(`bbbbb.`, birdName)
-      //     // res.render(`species`, {speciesCounterObject})
-      //   })
-      // }    
-
-
-      res.render(`species`, {speciesCounterObject})
+      res.render(`species`, {data})
     })
 })
 
