@@ -530,6 +530,7 @@ app.get(`/species/all`, (request, res) => {
     pool.query(sqlQuery, (error, result) => {
       whenQueryDone(error, result);
       let data = result.rows      
+      console.log(`sssssss`, data)
       let speciesArray = [];
       for (let i=0; i< data.length; i +=1 ){
         speciesArray.push(data[i].species)
@@ -540,27 +541,49 @@ app.get(`/species/all`, (request, res) => {
       let speciesCounterObject = speciesArray.reduce(function (acc, curr) {
           return acc[curr] ? ++acc[curr] : acc[curr] = 1, acc
           }, {});
-      console.log(speciesCounterObject)
+      console.log(`ccccc`,speciesCounterObject)
+      
+      // let birdName = {}
+      // for (const [key, value] of Object.entries(speciesCounterObject)){
+      //   let speciesQuery = `SELECT * FROM species WHERE name = '${key}'`;
+      //   pool.query(speciesQuery, (error1, result1)=>{
+      //     whenQueryDone(error1, result1);
+      //     birdName  = result1.rows[0] 
+      //     console.log(`bbbbb.`, birdName)
+      //     // res.render(`species`, {speciesCounterObject})
+      //   })
+      // }    
+
+
       res.render(`species`, {speciesCounterObject})
     })
 })
 
 app.get(`/species/:index`, (request,response) => {
   const {index} = request.params
-  sqlQuery = `SELECT name, scientific_name
-              FROM species
-              WHERE species.id = ${index}`
-  // sqlQuery = `SELECT species.id AS species_id, name, scientific_name, 
-  //                    notes.id, date, behaviour, flock_size, creator_id, species
+  // sqlQuery = `SELECT name, scientific_name
   //             FROM species
-  //             INNER JOIN notes
-  //             ON species = name
   //             WHERE species.id = ${index}`
-  pool.query(sqlQuery,(error, result) =>{
+
+  // pool.query(sqlQuery,(error, result) =>{
+  //   whenQueryDone(error, result);
+  //   let details = result.rows[0]
+  //   response.render("single_species", {details:details, ind:index})
+  // })
+
+    sqlQuery = `SELECT species.id AS species_id, name, scientific_name, 
+                     notes.id, date, behaviour, flock_size, creator_id, species
+              FROM species
+              INNER JOIN notes
+              ON species = name
+              WHERE species.id = ${index}`
+    pool.query(sqlQuery,(error, result) =>{
     whenQueryDone(error, result);
-    let details = result.rows[0]
-    response.render("single_species", {details:details, ind:index})
-  })
+    let data = result.rows
+    console.log(`aaaaaaaaaa`, data)
+    response.render(`listing`, {data});
+    
+    })
 })
 
 app.get(`/species/:index/edit`, (request, response) => {
