@@ -14,7 +14,7 @@
       <form action="/note/<%=oneNote.id%>/edit?_method=PUT" method="POST">
         <% for (const [key,value] of Object.entries(oneNote)) {%> 
           <% if (!(key==="OBSERVED")){%>
-            <% if (!(key==="id") && !(key==="creator_id") && !(key === "species")) {%>
+            <% if (!(key==="id") && !(key==="creator_id") && !(key === "species") && !(key==="email")  ) {%>
               <label for="<%= key %>"><h6><%= key %></h6></label><br />
               <input type="text" id="<%key%>" name="<%=key%>" value="<%=value%>"  
            
@@ -28,7 +28,8 @@
                     <% }); %> 
                    </select>
                 </div>    
-              
+                <br>
+               <button type="submit" class="btn btn-secondary">Submit</button>
             <%}%>    
              <br>  
              <br> 
@@ -39,7 +40,7 @@
         <%}%>
 
         <!-- <input type="submit" value="Submit" /> -->
-        <button type="submit" class="btn btn-secondary">Submit</button>
+       
       </form>
     </div>
  </body>
