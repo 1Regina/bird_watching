@@ -84,70 +84,11 @@ if (command === "report") {
 
 // ====== EJS
 // MAIN PAGE
-// app.get("/", (request, response) => {
-//   console.log("request came in");
 
-//   let searchQuery = `SELECT notes.id, notes.date, notes.behaviour, notes.flock_size, creator_id, species,
-//                             users.id AS user_id, user_name
-//                      FROM notes
-//                      INNER JOIN users
-//                      ON creator_id = users.id
-//                      ORDER BY notes.id;`;
-//   pool.query(searchQuery, (error, result) => {
-//     if (error) {
-//       // console.log('Error executing query', error.stack);
-//       console.log("Error executing query", error);
-//       // response.status(503).send(result.rows);
-//       return;
-//     }
-//     let data = result.rows;
-
-//     // console.log(data)
-
-//     //   // https://stackoverflow.com/questions/7042340/error-cant-set-headers-after-they-are-sent-to-the-client
-//     // if (request.cookies === null) {
-//     //   console.log('qqqqqqqqqqqqqqqqqq')
-//     //   data = [{ user_name: "Visitor" }]
-//     //   response.render(`listing`, {data, loggerName: ""});
-
-//     // } else if (request.cookies.loggedIn === true)  {
-
-//     if (request.cookies.loggedIn === "true") {
-//       // use cookie to find member name
-
-//       // / SHOW MEMBER NAME
-//       const { userEmail } = request.cookies;
-//       console.log(`aaaaaaaaaaaaaaaaacookie of user`, request.cookies);
-//       let findCookieUserQuery = `SELECT notes.id, notes.date, notes.behaviour, notes.flock_size, creator_id,        species,
-//                             users.id AS user_id, user_name
-//                      FROM notes
-//                      INNER JOIN users
-//                      ON creator_id = users.id
-//                      ORDER BY notes.id
-//                       WHERE user_name = '${userEmail}';`;
-//       pool.query(findCookieUserQuery, (cookieErr, cookieResult) => {
-//         whenQueryDone(cookieErr, cookieResult);
-//         console.log(cookieResult.rows);
-//         console.log(`aaaaaaaaaaaa`, cookieResult.rows[0].user_name);
-//         let name = cookieResult.rows[0].user_name;
-//         data = cookieResult.rows;
-//         response.render(`listing_user`, { data, loggerName: name });
-//       });
-//     } else {
-//       // https://stackoverflow.com/questions/7042340/error-cant-set-headers-after-they-are-sent-to-the-client
-
-//       console.log("qqqqqqqqqqqqqqqqqq");
-//       data = [{ user_name: "Visitor" }];
-//       response.render(`listing_user`, { data, loggerName: "" });
-
-//       //   response.render(`listing`, {data});
-//     }
-//   });
-// });
 app.get("/", (request, response) => {
   console.log("request came in");
   let searchQuery = `SELECT notes.id, notes.date, notes.behaviour, notes.flock_size, creator_id, species,
-                            users.id AS user_id, user_name
+                            users.id AS user_id, user_name, email
                      FROM notes
                      INNER JOIN users
                      ON creator_id = users.id
@@ -160,7 +101,20 @@ app.get("/", (request, response) => {
       return;
     }
     let data = result.rows;
-    response.render(`listing`, { data });
+    let index;
+    if (request.cookies.loggedIn === "true") {
+      const { userEmail } = request.cookies;
+      sqlQuery = `SELECT * FROM users WHERE email = '${userEmail}'`;
+      pool.query(sqlQuery, (erroring, resulting) => {
+        whenQueryDone(erroring, resulting);
+        index = resulting.rows[0].id;
+        console.log(`aaaaaaaaaaa`, index);
+        response.render(`listing`, { data, idx: index });
+      });
+    } else {
+      index = 0;
+      response.render(`listing`, { data, idx: index });
+    }
   });
 });
 
@@ -267,15 +221,15 @@ app.get("/note/:index/edit", (req, res) => {
       whenQueryDone(error, result);
       let oneNote = result.rows[0];
       let details = { oneNote };
-      if (userEmail === oneNote.email){
+      if (userEmail === oneNote.email) {
         let speciesQuery = `SELECT * FROM species`;
         pool.query(speciesQuery, (error1, result1) => {
           whenQueryDone(error1, result1);
           let birds = result1.rows;
-          console.log(`aaaaaaaa`, birds)
+          console.log(`aaaaaaaa`, birds);
           details.birdName = birds;
-        res.render(`editForm`, details);
-        })
+          res.render(`editForm`, details);
+        });
       } else {
         res.send("You are not authorised to edit this post.");
       }
@@ -309,14 +263,36 @@ app.put("/note/:index_a/edit", (req, res) => {
 app.delete("/note/:index/delete", (request, response) => {
   console.log(`aaaaaaaaaaaa`);
   const { index } = request.params;
-  sqlQuery = `DELETE FROM notes WHERE id = ${index}`;
-  console.log(`The query to delete`, sqlQuery);
-  pool.query(sqlQuery, (err, results) => {
-    if (err) {
-      console.log(`Check your query again`);
-    }
-  });
-  response.send("Delete Succesfully");
+  if (request.cookies.loggedIn === "true") {
+    const { userEmail } = request.cookies;
+    let matchUserQuery = `SELECT notes.id AS notes_id, creator_id, 
+                                 users.id AS user_id, email
+                          FROM users 
+                          INNER JOIN notes
+                          ON creator_id = users.id
+                          WHERE notes.id = '${index}'`;
+    pool.query(matchUserQuery, (error, result) => {
+      whenQueryDone(error, result);
+      console.log(`aaaaaaaaa`, result.rows);
+      let note = result.rows[0];
+      if (note.email === userEmail) {
+        sqlQuery = `DELETE FROM notes WHERE id = ${index}`;
+        console.log(`The query to delete`, sqlQuery);
+        pool.query(sqlQuery, (err, results) => {
+          if (err) {
+            console.log(`Check your query again`);
+          }
+          response.send("Delete Succesfully");
+        });
+      } else {
+        response.send("You are not authorised to delete this note.");
+      }
+    });
+  } else {
+    response.send(
+      "Only creators are authorised to delete. Login to delete if you are the creator."
+    );
+  }
 });
 
 // method 2: better. sort listing by chosen parameter
@@ -509,7 +485,11 @@ app.get("/users/:id", (req, res) => {
     whenQueryDone(error, result);
     let data = result.rows;
     console.log(`zzzzzz `, data);
-    res.render(`listing_user`, { data });
+    if (req.cookies.loggedIn === "true") {
+      res.render(`listing_user`, { data });
+    } else {
+      res.send(`Please login to see the notes you created`);
+    }
   });
 });
 
