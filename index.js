@@ -568,7 +568,11 @@ app.get("/users/:id", (req, res) => {
 
 // Render form to enter new species
 app.get("/species", (req, res) => {
+  if (req.cookies.loggedIn === "true") {
   res.render("new_species");
+  } else {
+    res.send("Only members can create species.")
+  }
 });
 
 app.post("/species", (req, res) => {
