@@ -160,10 +160,9 @@ app.get("/", (request, response) => {
       return;
     }
     let data = result.rows;
-    response.render(`listing`, {data})
-  })  
-})
-
+    response.render(`listing`, { data });
+  });
+});
 
 // SINGLE SIGHTING PAGE
 app.get("/note/:id", (request, response) => {
@@ -192,24 +191,23 @@ app.get("/note/:id", (request, response) => {
 // NEW SIGHTING PAGE
 app.get("/note", (request, response) => {
   if (request.cookies.loggedIn === "true") {
-  
-  pool.query(`SELECT * FROM species`, (error, result) => {
-    whenQueryDone(error, result);
-    const birds = {
-      birdName: result.rows,
-    };
+    pool.query(`SELECT * FROM species`, (error, result) => {
+      whenQueryDone(error, result);
+      const birds = {
+        birdName: result.rows,
+      };
 
-    pool.query(`SELECT * FROM behaviours`, (erroring, resulting) => {
-      whenQueryDone(erroring, resulting);
-      birds.behaves = resulting.rows;
-      console.log(birds);
-      response.render("new_note", birds);
+      pool.query(`SELECT * FROM behaviours`, (erroring, resulting) => {
+        whenQueryDone(erroring, resulting);
+        birds.behaves = resulting.rows;
+        console.log(birds);
+        response.render("new_note", birds);
+      });
+
+      // response.render('new_note', birds);
     });
-  
-    // response.render('new_note', birds);
-  });
   } else {
-    response.send(`You need to login first`)
+    response.send(`You need to login first`);
   }
 });
 
@@ -256,71 +254,36 @@ app.post("/note", (request, response) => {
 });
 
 // EDIT FORM
-// Display the sighting to edit
-// Q1 ??????????????? WHY IS cookie checking failing
 app.get("/note/:index/edit", (req, res) => {
-  if (req.cookies.loggedIn === "true") {
-    const { index } = req.params; // req.params is an object..destructuring
-    const { userEmail } = req.cookies;
-    let matchCookieQuery = `SELECT email, users.id, notes.id, date, behaviour, flock_size, creator_id, species
-                            FROM users
-                            INNER JOIN notes 
-                            ON notes.creator_id = users.id
-                            WHERE notes.id = ${index} ;`;
-    pool.query(matchCookieQuery, (err, result) => {
-      whenQueryDone(err, result);
-      console.log(`aaaaaaaaa`, result);
-      const oneNote = result.rows[0];
-      const details = { oneNote };
-      if (userEmail === result.rows[0].email) {
+  const { index } = req.params; // req.params is an object..destructuring
+  const { userEmail, loggedIn } = req.cookies;
+  if (loggedIn === "true") {
+    sqlQuery = `SELECT date, behaviour, flock_size, species, email, notes.id
+                FROM users
+                INNER JOIN notes 
+                ON notes.creator_id = users.id
+                WHERE notes.id = ${index} ;`;
+    pool.query(sqlQuery, (error, result) => {
+      whenQueryDone(error, result);
+      let oneNote = result.rows[0];
+      let details = { oneNote };
+      if (userEmail === oneNote.email){
         let speciesQuery = `SELECT * FROM species`;
         pool.query(speciesQuery, (error1, result1) => {
           whenQueryDone(error1, result1);
-          // const birds = {
           let birds = result1.rows;
+          console.log(`aaaaaaaa`, birds)
           details.birdName = birds;
-        });
-
-        // console.log(`aaaaa`, birds)
-        // console.log(`bbbbb`, {oneNote, birds})
         res.render(`editForm`, details);
+        })
       } else {
-        res.send("You are not authorised to edit this post. ");
+        res.send("You are not authorised to edit this post.");
       }
     });
   } else {
     res.send("You need to login in. Return to home page http://localhost:3004");
   }
 });
-// app.get('/note/:index/edit', (req,res) =>{
-//   const {index} = req.params // req.params is an object..destructuring
-//   sqlQuery = `SELECT * FROM notes WHERE id = '${index}';`
-//   console.log('sql statement', sqlQuery)
-//   pool.query(sqlQuery,(error, result) => {
-//     if (error) {
-//       console.log('Error executing query', error.stack);
-//       // response.status(503).send(result.rows);
-//       // return;
-//     }
-//     const oneNote = result.rows[0];
-//     const details = {oneNote};
-
-//     console.log(`details`, details);
-
-//     let speciesQuery = `SELECT * FROM species`;
-//     pool.query(speciesQuery, (error1, result1) =>{
-//       whenQueryDone(error1, result1);
-//       // const birds = {
-//        let birds = result1.rows
-//        details.birdName = birds
-//       // }
-//       // console.log(`aaaaa`, birds)
-//       // console.log(`bbbbb`, {oneNote, birds})
-//      res.render(`editForm`, details);
-//     })
-
-//   })
-// });
 
 app.put("/note/:index_a/edit", (req, res) => {
   const { index_a } = req.params;
@@ -569,9 +532,9 @@ app.get("/users/:id", (req, res) => {
 // Render form to enter new species
 app.get("/species", (req, res) => {
   if (req.cookies.loggedIn === "true") {
-  res.render("new_species");
+    res.render("new_species");
   } else {
-    res.send("Only members can create species.")
+    res.send("Only members can create species.");
   }
 });
 
