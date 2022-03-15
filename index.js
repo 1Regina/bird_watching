@@ -43,7 +43,7 @@ const whenQueryDone = (error, result) => {
     console.log("Error executing query", error.stack);
     return;
   } else if (result.rows.length === 0) {
-    console.log("login failed!");
+    console.log("empty results!");
     return;
   }
 };
@@ -53,7 +53,9 @@ let sqlQuery = "";
 if (command === "log") {
   console.log(`inputData array`, inputData);
   sqlQuery = "INSERT INTO notes (behaviour, flock_size) VALUES ($1, $2);";
-  pool.query(sqlQuery, inputData, whenQueryDone);
+  pool.query(sqlQuery, inputData, (error, result) =>{
+    whenQueryDone(error, result);
+  })
 }
 
 // INSERT DATE
