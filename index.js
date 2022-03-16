@@ -651,7 +651,8 @@ app.get(`/species/all`, (request, res) => {
                 FROM species 
                 INNER JOIN notes 
                 ON notes.species = species.name
-                GROUP BY species_id, name`;
+                GROUP BY species_id, name
+                ORDER BY species.id`;
   pool.query(sqlQuery, (error, result) => {
     whenQueryDone(error, result);
     let data = result.rows;
@@ -662,27 +663,32 @@ app.get(`/species/all`, (request, res) => {
 
 app.get(`/species/:index`, (request, response) => {
   const { index } = request.params;
-  // sqlQuery = `SELECT name, scientific_name
-  //             FROM species
-  //             WHERE species.id = ${index}`
-
-  // pool.query(sqlQuery,(error, result) =>{
-  //   whenQueryDone(error, result);
-  //   let details = result.rows[0]
-  //   response.render("single_species", {details:details, ind:index})
-  // })
-
   sqlQuery = `SELECT species.id AS species_id, name, scientific_name, 
-                     notes.id, date, behaviour, flock_size, creator_id, species
+                     notes.id, date, behaviour, flock_size, creator_id, species, users.id, user_name
               FROM species
               INNER JOIN notes
-              ON species = name
-              WHERE species.id = ${index}`;
+              ON species = name           
+              INNER JOIN users
+              ON creator_id = users.id
+              WHERE species.id = ${index}
+              ORDER BY notes.id`;
   pool.query(sqlQuery, (error, result) => {
     whenQueryDone(error, result);
     let data = result.rows;
     console.log(`aaaaaaaaaa`, data);
-    response.render(`listing`, { data });
+
+    let ind;
+    if (request.cookies.loggedIn === "true") {
+      let userE = request.cookies.userEmail;
+      let userQuery = `SELECT * FROM users WHERE email = '${userE}'`;
+      pool.query(userQuery, (error1, result1) => {
+        whenQueryDone(error1, result1);
+        ind = result1.rows[0].id;
+      });
+    } else {
+      ind = 0;
+    }
+    response.render(`listing`, { data, idx: ind });
   });
 });
 

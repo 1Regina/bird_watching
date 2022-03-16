@@ -4,39 +4,60 @@
     <meta charset="UTF-8" />
     <meta http-equiv="X-UA-Compatible" content="IE=edge" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" /> -->
-    <title>Species Notes Count</title>
-  <!-- </head> -->
-  <!-- <body> -->
-    <%- include('navigator_bar') -%>
+<title>Species Notes Count</title>
+<!-- </head> -->
+<!-- <body> -->
+<%- include('navigator_bar') -%>
+  <div class="container">
     <div class="container">
-         <div class="container">
-             <h1>Counter of Species Notes</h1>
-         </div>
-     <br>
-     <br>
-    <div class="container-sm  d-flex flex-row">
-    <div class="shadow p-3 mb-5 bg-white rounded">
-      <%for (let i = 0; i< data.length ; i += 1) {%>
-       
-        <ul> 
-           <div class="row">
-             <div class="col-sm-10">
-            <% let url = `/species/${data[i].species_id}` %>
-            <h5>
-              <a href="<%=url %>"><%=`${data[i].name}`%></a>
-            </h5>  
-             </div>
-             <div class="col-sm-2">
-              <h6>   
-                <%=`${data[i].count}`%>
-              </h6>
-             </div>
-           </div>
-        </ul>
-     
-      <%}%>    
-    </div> 
+      <h1>Counter of Species Notes</h1>
     </div>
-    </div>  
+    <br>
+
+    <div class="col-sm-9">
+      <table class="table table-dark">
+        <thead>
+          <tr>
+            <th scope="col"></th>
+            <th scope="col">Species</th>
+            <th scope="col">Count</th>
+            <th scope="col"></th>
+          </tr>
+        </thead>
+      </table>
+    </div>
+
+    <div class="container-sm  d-flex flex-row">
+      <div class="shadow w-75 p-3 mb- bg-white rounded">
+        <%for (let i=0; i< data.length ; i +=1) {%>
+          <ul>
+            <div class="row">
+              <div class="col-sm-6">
+                <% let url=`/species/${data[i].species_id}` %>
+                  <h5>
+                    <a href="<%=url %>">
+                      <%=`${data[i].name}`%>
+                    </a>
+                  </h5>
+              </div>
+              <div class="col-sm-2">
+                <h6>
+                  <%=`${data[i].count}`%>
+                </h6>
+              </div>
+              <div class="col-sm-2">
+                <% let editUrl=`/species/${data[i].species_id}/edit` %>
+                  <h8>
+                    <a href="<%=editUrl %>">
+                      <%=`Edit`%>
+                    </a>
+                  </h8>
+              </div>
+            </div>
+          </ul>
+          <%}%>
+      </div>
+    </div>
+  </div>
   </body>
-</html>
+  </html>
