@@ -22,7 +22,7 @@
               <label for="species" class="form-label "><h5>Species:</h5></label>
                 <div class = "w-50">
                    <select class="custom-select" id="species" name = "species" required>
-                    <option selected>Choose...</option>
+                    <option selected><%=oneNote.species%></option>
                     <% birdName.forEach((species) => {%>
                       <option value = "<%= species.name %>"><%= species.name %></option>
                     <% }); %> 
