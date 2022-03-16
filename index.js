@@ -90,10 +90,15 @@ if (command === "report") {
 app.get("/", (request, response) => {
   console.log("request came in");
   let searchQuery = `SELECT notes.id, notes.date, notes.behaviour, notes.flock_size, creator_id, species,
-                            users.id AS user_id, user_name, email
+                            users.id AS user_id, user_name, email, notes_id, behaviour_id, action
                      FROM notes
                      INNER JOIN users
                      ON creator_id = users.id
+                     INNER JOIN notes_behaviour
+                     ON notes.id = notes_id
+                     INNER JOIN behaviours
+                     ON behaviours.id = behaviour_id
+                     
                      ORDER BY notes.id;`;
   pool.query(searchQuery, (error, result) => {
     if (error) {
@@ -657,7 +662,7 @@ app.get(`/species/all`, (request, res) => {
     whenQueryDone(error, result);
     let data = result.rows;
     console.log(`sssssss`, data);
-    res.render(`species`, { data });
+    res.render("species", { data });
   });
 });
 
@@ -738,6 +743,53 @@ app.delete("/species/:index/delete", (request, response) => {
     whenQueryDone(err, results);
   });
   response.send("Delete Succesfully");
+});
+
+// ============= 3POCE8
+app.get("/behaviours", (request, response) => {
+  sqlQuery = `SELECT action, COUNT(notes_id), behaviour_id
+              FROM behaviours
+              INNER JOIN notes_behaviour
+              ON behaviours.id = behaviour_id  
+              GROUP BY action, behaviour_id
+              ORDER by action`;
+  console.log(sqlQuery);
+  pool.query(sqlQuery, (error, result) => {
+    whenQueryDone(error, result);
+    let data = result.rows;
+    console.log(data);
+    response.render("behaviours", { data });
+  });
+});
+
+app.get("/behaviours/:id", (request, response) => {
+  let behaviourID = request.params.id;
+  sqlQuery = `SELECT * 
+              FROM notes
+              INNER JOIN notes_behaviour
+              ON notes.id = notes_id
+              INNER JOIN behaviours 
+              ON behaviours.id = behaviour_id
+              WHERE behaviour_id = ${behaviourID}`;
+  pool.query(sqlQuery, (error, results) => {
+    whenQueryDone(error, results);
+    console.log(results.rows)
+   let data = results.rows
+   let index;
+    if (request.cookies.loggedIn === "true") {
+      const { userEmail } = request.cookies;
+      sqlQuery = `SELECT * FROM users WHERE email = '${userEmail}'`;
+      pool.query(sqlQuery, (erroring, resulting) => {
+        whenQueryDone(erroring, resulting);
+        index = resulting.rows[0].id;
+        console.log(`aaaaaaaaaaa`, index);
+        response.render(`listing`, { data, idx: index });
+      });
+    } else {
+      index = 0;
+      response.render(`listing`, { data, idx: index });
+    }
+  });
 });
 
 // set port to listen
