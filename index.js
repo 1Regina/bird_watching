@@ -53,9 +53,9 @@ let sqlQuery = "";
 if (command === "log") {
   console.log(`inputData array`, inputData);
   sqlQuery = "INSERT INTO notes (behaviour, flock_size) VALUES ($1, $2);";
-  pool.query(sqlQuery, inputData, (error, result) =>{
+  pool.query(sqlQuery, inputData, (error, result) => {
     whenQueryDone(error, result);
-  })
+  });
 }
 
 // INSERT DATE
@@ -155,7 +155,7 @@ app.get("/note", (request, response) => {
 
       pool.query(`SELECT * FROM behaviours`, (erroring, resulting) => {
         whenQueryDone(erroring, resulting);
-        birds.behaves = resulting.rows;
+        birds.behaviour = resulting.rows;
         console.log(birds);
         response.render("new_note", birds);
       });
@@ -170,41 +170,48 @@ app.get("/note", (request, response) => {
 // Save new sighting data sent via POST request from our form
 app.post("/note", (request, response) => {
   console.log(`before add sighting`);
-  let date = new Date(request.body.DATE)
+  let date = new Date(request.body.date)
     .toLocaleDateString("en-GB", {
       day: "numeric",
       month: "short",
       year: "numeric",
     })
     .replace(/ /g, "-");
-  console.log(`type of Date input before SQL input`, typeof date);
-  const behaviour = request.body.BEHAVING;
-  const flock_size = request.body.FLOCK_SIZE;
-  const species = request.body.SPECIES;
-  // let cookieUser = request.cookies.user
-  // console.log(`aaaaaaaaaaaaaaaaaaaaaacookieUser`, cookieUser)
-  const { userEmail } = request.cookies;
-  // console.log(`aaaaaaaaaaaaaaaaacookie of user`, user)
+  const { species, behaviour, flock_size } = request.body;
 
+  const { userEmail } = request.cookies;
   let creator_id;
-  let findCookieUserQuery = `SELECT * FROM users WHERE email = '${userEmail}';`;
-  pool.query(findCookieUserQuery, (cookieErr, cookieResult) => {
+  let findCookieUserId = `SELECT * FROM users WHERE email = '${userEmail}';`;
+  pool.query(findCookieUserId, (cookieErr, cookieResult) => {
     whenQueryDone(cookieErr, cookieResult);
-    // console.log(`xxxxxxxxxx`, cookieResult.rows[0])
     creator_id = cookieResult.rows[0].id;
-    // console.log(`creator id from query`, creator_id)
-    const formData = [date, behaviour, flock_size, creator_id, species];
-    let entryQuery = `INSERT INTO notes (date, behaviour, flock_size , creator_id, species) 
-                                 VALUES ($1, $2, $3 , $4, $5) 
+
+    const formData = [date, flock_size, creator_id, species];
+    let entryQuery = `INSERT INTO notes (date, flock_size , creator_id, species) 
+                                 VALUES ($1, $2, $3 , $4) 
                                  RETURNING id;`;
     pool.query(entryQuery, formData, (entryError, entryResult) => {
-      if (entryError) {
-        console.log("error", entryError);
-      } else {
-        const noteId = entryResult.rows[0].id;
-        console.log(noteId);
-        response.redirect(`/note/${noteId}`);
-      }
+      whenQueryDone(entryError, entryResult);
+      const noteId = entryResult.rows[0].id;
+      console.log(noteId);
+      console.log(`aaaaaaaa`, behaviour);
+
+      behaviour.forEach((behaviourId) => {
+        behaviourId = parseInt(behaviourId);
+        const behaviourData = [noteId, behaviourId];
+        const notesBehaviourEntry =
+          "INSERT INTO notes_behaviour (notes_id, behaviour_id) VALUES ($1, $2)";
+
+        pool.query(
+          notesBehaviourEntry,
+          behaviourData,
+          (notesBehaviourEntryError, notesBehaviourEntryResult) => {
+            whenQueryDone(notesBehaviourEntryError, notesBehaviourEntryResult);
+          }
+        );
+      });
+
+      response.redirect(`/note/${noteId}`);
     });
   });
 });
@@ -368,7 +375,21 @@ const sortSummary = (req, res) => {
           : dynamicDescSort("flock_size")
       );
     }
-    res.render(`listing`, { data });
+    let index;
+    if (req.cookies.loggedIn === "true") {
+      const { userEmail } = req.cookies;
+      sqlQuery = `SELECT * FROM users WHERE email = '${userEmail}'`;
+      pool.query(sqlQuery, (erroring, resulting) => {
+        whenQueryDone(erroring, resulting);
+        index = resulting.rows[0].id;
+        console.log(`aaaaaaaaaaa`, index);
+        res.render(`listing`, { data, idx: index });
+      });
+    } else {
+      index = 0;
+      res.render(`listing`, { data, idx: index });
+    }
+    // res.render(`listing`, { data });
   });
 };
 app.get(`/notes-sortby/:parameter/:sortHow`, sortSummary);
@@ -494,6 +515,96 @@ app.get("/users/:id", (req, res) => {
     }
   });
 });
+
+const userSortSummary = (req, res) => {
+  let index;
+  if (req.cookies.loggedIn === "true") {
+    const { userEmail } = req.cookies;
+    sqlQuery = `SELECT * FROM users WHERE email = '${userEmail}'`;
+    pool.query(sqlQuery, (erroring, resulting) => {
+      whenQueryDone(erroring, resulting);
+      index = resulting.rows[0].id;
+      console.log(`aaaaaaaaaaa`, index);
+
+      let notesQuery = `SELECT * FROM notes 
+                      WHERE creator_id = ${index}
+                      ORDER BY id ASC;`;
+      pool.query(notesQuery, (queryError, queryResult) => {
+        whenQueryDone(queryError, queryResult);
+        let data = queryResult.rows;
+        console.log(`results before sorting which is all is`, data);
+
+        if (req.params.parameter === "date") {
+          const ascFn = (a, b) => new Date(a.date) - new Date(b.date);
+          const descFn = (a, b) => new Date(b.date) - new Date(a.date);
+          // sorting condition
+          data.sort(req.params.sortHow === `asc` ? ascFn : descFn);
+        } else if (req.params.parameter === "behaviour") {
+          // const ascFn  = (a,b)=> {(String(a.behaviour).replace(/ /g, "_").toUpperCase()) >  (String(b.behaviour).replace(/ /g, "_").toUpperCase()) ? 1 : -1}
+          // const descFn = (a,b)=> {(String(a.behaviour).replace(/ /g, "_").toUpperCase()) <  (String(b.behaviour).replace(/ /g, "_").toUpperCase()) ? 1 : -1}
+
+          // sorting condition
+          data.sort(
+            req.params.sortHow === `asc`
+              ? dynamicAscSort("behaviour")
+              : dynamicDescSort("behaviour")
+          );
+        } else if (req.params.parameter === "flock_size") {
+          // sorting condition
+          data.sort(
+            req.params.sortHow === `asc`
+              ? dynamicAscSort("flock_size")
+              : dynamicDescSort("flock_size")
+          );
+        }
+        res.render(`listing_user`, { data, idx: index });
+      });
+    });
+  } else {
+    index = 0;
+    res.render(`listing`, { data, idx: index });
+    let notesQuery = `SELECT * FROM notes ORDER BY id ASC;`;
+    pool.query(notesQuery, (queryError, queryResult) => {
+      if (queryError) {
+        console.log("Error executing query", error.stack);
+        response.status(503).send(queryResult.rows);
+        return;
+      }
+      if (queryResult.rows.length === 0) {
+        response.status(403).send("no records!");
+        return;
+      }
+      let data = queryResult.rows;
+      console.log(`results before sorting which is all is`, data);
+
+      if (req.params.parameter === "date") {
+        const ascFn = (a, b) => new Date(a.date) - new Date(b.date);
+        const descFn = (a, b) => new Date(b.date) - new Date(a.date);
+        // sorting condition
+        data.sort(req.params.sortHow === `asc` ? ascFn : descFn);
+      } else if (req.params.parameter === "behaviour") {
+        // const ascFn  = (a,b)=> {(String(a.behaviour).replace(/ /g, "_").toUpperCase()) >  (String(b.behaviour).replace(/ /g, "_").toUpperCase()) ? 1 : -1}
+        // const descFn = (a,b)=> {(String(a.behaviour).replace(/ /g, "_").toUpperCase()) <  (String(b.behaviour).replace(/ /g, "_").toUpperCase()) ? 1 : -1}
+
+        // sorting condition
+        data.sort(
+          req.params.sortHow === `asc`
+            ? dynamicAscSort("behaviour")
+            : dynamicDescSort("behaviour")
+        );
+      } else if (req.params.parameter === "flock_size") {
+        // sorting condition
+        data.sort(
+          req.params.sortHow === `asc`
+            ? dynamicAscSort("flock_size")
+            : dynamicDescSort("flock_size")
+        );
+      }
+      // res.render(`listing`, { data });
+    });
+  }
+};
+app.get(`/users/:id/notes-sortby/:parameter/:sortHow`, userSortSummary);
 
 // ============= 3POCE7
 // General info adding
