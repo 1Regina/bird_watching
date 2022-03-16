@@ -14,14 +14,14 @@
     <form action = "/note" method="POST" class=".needs-validation">
 
         <label for="date" class="form-label "><h5>Date:</h5></label>
-        <input type="date" class="form-control w-25 " data-date-end-date="0d" id="date" placeholder="Enter date before today" name="DATE" required>
+        <input type="date" class="form-control w-50 " data-date-end-date="0d" id="date" placeholder="Enter date before today" name="date" required>
         <div class="valid-feedback">Valid.</div>
         <div class="invalid-feedback">Please fill out this field.</div>
       <br>
 
         <label for="species" class="form-label "><h5>Species:</h5></label>
         <div class = "w-50">
-          <select class="custom-select" id="species" name = "SPECIES" required>
+          <select class="custom-select" id="species" name = "species" required>
             <option selected>Choose...</option>
             <% birdName.forEach((species) => {%>
             <option value = "<%= species.name %>"><%= species.name %></option>
@@ -51,10 +51,10 @@
        <label for="behaviour" class="form-label"><h5>Behaviour:</h5> <h8>(Select all that apply)</h8></label>
 
         <div class = "w-75 form-group col-md-6">
-            <% behaves.forEach((behave) => { %>                  
+            <% behaviour.forEach((behave) => { %>                  
                   <h5>
-                    <input type="checkbox" name="BEHAVIOUR" value="<%= behave.id %>" />
-                    <label><%= behave.action %></label>
+                    <input type="checkbox" name="behaviour" value="<%= behave.id %>" />
+                    <label><h6><%= behave.action %></h6></label>
                   </h5>  
             <% }); %>
         </div>
@@ -62,7 +62,7 @@
       <br>
       <div class="mb-3 mt-3">
         <label for="flock_size" class="form-label"><h5>Flock Size</h5></label>
-        <input type="number" min="1" class="form-control w-25" id="flock_size" placeholder="Enter the flock size observed" name="FLOCK_SIZE" required>
+        <input type="number" min="1" class="form-control w-25" id="flock_size" placeholder="Enter the flock size observed" name="flock_size" required>
         <div class="valid-feedback">Valid.</div>
         <div class="invalid-feedback">Please fill out this field.</div>
       </div>
