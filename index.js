@@ -89,19 +89,24 @@ if (command === "report") {
 
 app.get("/", (request, response) => {
   console.log("request came in");
-  let searchQuery = `SELECT notes.id, notes.date, notes.behaviour, notes.flock_size, creator_id, species,
-                            users.id AS user_id, user_name, email, notes_id, behaviour_id, action
+  let searchQuery = `SELECT notes.id, notes.date, notes.behaviour, notes.flock_size, creator_id, species,  users.id AS user_id, user_name, email
                      FROM notes
                      INNER JOIN users
                      ON creator_id = users.id
-                     INNER JOIN notes_behaviour
-                     ON notes.id = notes_id
-                     INNER JOIN behaviours
-                     ON behaviours.id = behaviour_id                     
-                     ORDER BY notes.id;`;
+                     ORDER BY notes.id;`
+  // let searchQuery = `SELECT notes.id, notes.date, notes.behaviour, notes.flock_size, creator_id, species,
+  //                           users.id AS user_id, user_name, email, notes_id, behaviour_id, action
+  //                    FROM notes
+  //                    INNER JOIN users
+  //                    ON creator_id = users.id
+  //                    INNER JOIN notes_behaviour
+  //                    ON notes.id = notes_id
+  //                    INNER JOIN behaviours
+  //                    ON behaviours.id = behaviour_id                     
+  //                    ORDER BY notes.id;`;
   pool.query(searchQuery, (error, result) => {
     whenQueryDone(error, result);
-    let everyData = result.rows;
+    let data = result.rows;
     // console.log(`bbbbbbbbbb`, everyData);
     // console.log(`ccccccccc`, everyData[0].id)
     // everyData.forEach((subnote) => {
@@ -112,17 +117,17 @@ app.get("/", (request, response) => {
     //   }
     // });
 
-    let allActions = [everyData[0].action]
-     console.log(`ccccccccc`, everyData[0].id)
-    for (let i=0; i<everyData.length; i +=1) {
-          if (everyData[i+1].id === everyData[i].id) {
-        allActions.push(everyData[i+1].action)
-      } else {
-        everyData[i].actions = allActions
-        allActions.splice(0, allActions.length)
-        allActions.push(everyData[i+1].action)
-      }  
-    }
+    // let allActions = [everyData[0].action]
+    //  console.log(`ccccccccc`, everyData[0].id)
+    // for (let i=0; i<everyData.length; i +=1) {
+    //       if (everyData[i+1].id === everyData[i].id) {
+    //     allActions.push(everyData[i+1].action)
+    //   } else {
+    //     everyData[i].actions = allActions
+    //     allActions.splice(0, allActions.length)
+    //     allActions.push(everyData[i+1].action)
+    //   }  
+    // }
 
     let index;
     if (request.cookies.loggedIn === "true") {
