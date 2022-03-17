@@ -97,17 +97,21 @@ app.get("/", (request, response) => {
                      INNER JOIN notes_behaviour
                      ON notes.id = notes_id
                      INNER JOIN behaviours
-                     ON behaviours.id = behaviour_id
-                     
+                     ON behaviours.id = behaviour_id                     
                      ORDER BY notes.id;`;
   pool.query(searchQuery, (error, result) => {
-    if (error) {
-      // console.log('Error executing query', error.stack);
-      console.log("Error executing query", error);
-      // response.status(503).send(result.rows);
-      return;
-    }
-    let data = result.rows;
+    whenQueryDone(error, result);
+    let everyData = result.rows;
+    console.log(`bbbbbbbbbb`, everyData);
+
+    everyData.forEach((subnote) => {
+      if (subnote.id === subnote.id) {
+        let itsActions = [];
+        itsActions.push(subnote.action);
+        console.log(`vvvvvvvvv`, itsActions);
+      }
+    });
+
     let index;
     if (request.cookies.loggedIn === "true") {
       const { userEmail } = request.cookies;
@@ -773,9 +777,9 @@ app.get("/behaviours/:id", (request, response) => {
               WHERE behaviour_id = ${behaviourID}`;
   pool.query(sqlQuery, (error, results) => {
     whenQueryDone(error, results);
-    console.log(results.rows)
-   let data = results.rows
-   let index;
+    console.log(results.rows);
+    let data = results.rows;
+    let index;
     if (request.cookies.loggedIn === "true") {
       const { userEmail } = request.cookies;
       sqlQuery = `SELECT * FROM users WHERE email = '${userEmail}'`;
@@ -792,5 +796,46 @@ app.get("/behaviours/:id", (request, response) => {
   });
 });
 
+// ============= 3POCE9
+
+// 3.POCE.9: Bird watching comments
+app.post("/note/:id/comment", (req, res) => {
+  if (req.cookies.loggedIn !== "true") {
+    res.send(`you need to login to comment`);
+  }
+  const { userEmail } = req.cookies;
+  const notesId = req.params.id;
+  console.log(userEmail);
+  let userId;
+  let findUserId = `SELECT * FROM users WHERE email = '${userEmail}'`;
+  pool.query(findUserId, (error, result) => {
+    whenQueryDone(error, result);
+    console.log(`%%%%%%`, result);
+    userId = result.rows[0].id;
+
+    console.log(notesId);
+    const text = req.body.comment;
+    console.log(`aaaaaaaaaa`, text);
+
+    const addCommentQuery =
+      "INSERT INTO comments (text, notes_id, user_id) VALUES ($1, $2, $3)";
+    const inputData = [`'${text}'`, notesId, userId];
+
+    pool.query(
+      addCommentQuery,
+      inputData,
+      (addCommentQueryError, addCommentQueryResult) => {
+        whenQueryDone(addCommentQueryError, addCommentQueryResult);
+
+        sqlQuery = `SELECT * FROM notes`;
+        pool.query(sqlQuery, (err, results) => {
+          whenQueryDone(err, results);
+          let data = results.rows;
+          res.render(`listing`, { data, idx: userId });
+        });
+      }
+    );
+  });
+});
 // set port to listen
 app.listen(port);

@@ -33,6 +33,13 @@ CREATE TABLE  IF NOT EXISTS behaviours (
   action TEXT
 );
 
+CREATE TABLE IF NOT EXISTS comments (
+  id SERIAL PRIMARY KEY,
+  text TEXT,
+  notes_id INTEGER REFERENCES notes(id),
+  user_id INTEGER REFERENCES users(id)
+);
+
 -- INSERT INTO species (name, scientific_name) VALUES ('Ruby-cheeked Sunbird', 'Chalcoparia singalensis'), ('Scarlet-breasted Flowerpecker', 'Prionochilus thoracicus'), ('Greater Green Leafbird', 'Chloropsis sonnerati'), ('Blue-and-white Flycatcher', 'Cyanoptila cyanomelana');
 
 -- INSERT INTO behaviours (action) VALUES ('bobbing_tail'), ('cocking_head'), ('stretching_wings'), ('resting'), ('preening'), ('singing');

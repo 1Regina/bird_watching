@@ -38,7 +38,14 @@ CREATE TABLE IF NOT EXISTS notes_behaviour (
   behaviour_id INTEGER REFERENCES behaviours(id)
 );
 
-INSERT INTO species (name, scientific_name) VALUES ('Ruby-cheeked Sunbird', 'Chalcoparia singalensis'), ('Scarlet-breasted Flowerpecker', 'Prionochilus thoracicus'), ('Greater Green Leafbird', 'Chloropsis sonnerati'), ('Blue-and-white Flycatcher', 'Cyanoptila cyanomelana');
+CREATE TABLE IF NOT EXISTS comments (
+  id SERIAL PRIMARY KEY,
+  text TEXT,
+  notes_id INTEGER REFERENCES notes(id),
+  user_id INTEGER REFERENCES users(id)
+);
+
+-- INSERT INTO species (name, scientific_name) VALUES ('Ruby-cheeked Sunbird', 'Chalcoparia singalensis'), ('Scarlet-breasted Flowerpecker', 'Prionochilus thoracicus'), ('Greater Green Leafbird', 'Chloropsis sonnerati'), ('Blue-and-white Flycatcher', 'Cyanoptila cyanomelana');
 
 
-INSERT INTO behaviours (action) VALUES ('tail bobbing'), ('head cocking'), ('wings stretching'), ('resting'), ('preening'), ('singing');
+-- INSERT INTO behaviours (action) VALUES ('tail bobbing'), ('head cocking'), ('wings stretching'), ('resting'), ('preening'), ('singing');
