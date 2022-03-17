@@ -102,15 +102,27 @@ app.get("/", (request, response) => {
   pool.query(searchQuery, (error, result) => {
     whenQueryDone(error, result);
     let everyData = result.rows;
-    console.log(`bbbbbbbbbb`, everyData);
+    // console.log(`bbbbbbbbbb`, everyData);
+    // console.log(`ccccccccc`, everyData[0].id)
+    // everyData.forEach((subnote) => {
+    //   if (subnote.id === subnote.id) {
+    //     let itsActions = [];
+    //     itsActions.push(subnote.action);
+    //     console.log(`vvvvvvvvv`, itsActions);
+    //   }
+    // });
 
-    everyData.forEach((subnote) => {
-      if (subnote.id === subnote.id) {
-        let itsActions = [];
-        itsActions.push(subnote.action);
-        console.log(`vvvvvvvvv`, itsActions);
-      }
-    });
+    let allActions = [everyData[0].action]
+     console.log(`ccccccccc`, everyData[0].id)
+    for (let i=0; i<everyData.length; i +=1) {
+          if (everyData[i+1].id === everyData[i].id) {
+        allActions.push(everyData[i+1].action)
+      } else {
+        everyData[i].actions = allActions
+        allActions.splice(0, allActions.length)
+        allActions.push(everyData[i+1].action)
+      }  
+    }
 
     let index;
     if (request.cookies.loggedIn === "true") {
@@ -506,6 +518,7 @@ if (command === "addCreatorId") {
 
 app.get("/users/:id", (req, res) => {
   let user_now = req.params.id;
+  let commentary
   let searchQuery = `SELECT notes.id AS notes_id, notes.date, notes.behaviour, notes.flock_size, creator_id,
                             users.id AS user_id, user_name
                      FROM notes 
@@ -517,11 +530,26 @@ app.get("/users/:id", (req, res) => {
     whenQueryDone(error, result);
     let data = result.rows;
     console.log(`zzzzzz `, data);
-    if (req.cookies.loggedIn === "true") {
-      res.render(`listing_user`, { data });
+
+    let commentQuery = `SELECT * FROM comments WHERE user_id = '${user_now}' ORDER BY notes_id`
+    pool.query(commentQuery, (error1, result1)=> {
+      whenQueryDone(error1, result1)
+      console.log(`users comments`, result1.rows)
+      commentary = result1.rows
+
+      if (req.cookies.loggedIn === "true") {
+      res.render(`listing_user`, { data , commentary});
+  
     } else {
       res.send(`Please login to see the notes you created`);
     }
+    })
+    // if (req.cookies.loggedIn === "true") {
+    //   res.render(`listing_user`, { data , commentary});
+  
+    // } else {
+    //   res.send(`Please login to see the notes you created`);
+    // }
   });
 });
 

@@ -47,7 +47,7 @@
     <div class="col-sm-12 text-right">
       <% let comment_id=`comment ${ind}&${details.creator_id}` %>
         <form action="/note/<%=ind%>/comment" method="POST">
-          <input type="submit" value="comment" <%=id=comment_id %> class="btn btn-dark"/>
+          <input type="submit" value="comment" id=<%comment_id%> class="btn btn-dark"/>
     </div>
     <textarea name="comment" rows="5" cols="85" class="shadow p-3 mb-5 bg-white rounded  col-sm-12"
       placeholder="Leave your comments here..."></textarea>
