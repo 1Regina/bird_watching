@@ -93,7 +93,7 @@ app.get("/", (request, response) => {
                      FROM notes
                      INNER JOIN users
                      ON creator_id = users.id
-                     ORDER BY notes.id;`
+                     ORDER BY notes.id;`;
   // let searchQuery = `SELECT notes.id, notes.date, notes.behaviour, notes.flock_size, creator_id, species,
   //                           users.id AS user_id, user_name, email, notes_id, behaviour_id, action
   //                    FROM notes
@@ -102,7 +102,7 @@ app.get("/", (request, response) => {
   //                    INNER JOIN notes_behaviour
   //                    ON notes.id = notes_id
   //                    INNER JOIN behaviours
-  //                    ON behaviours.id = behaviour_id                     
+  //                    ON behaviours.id = behaviour_id
   //                    ORDER BY notes.id;`;
   pool.query(searchQuery, (error, result) => {
     whenQueryDone(error, result);
@@ -126,7 +126,7 @@ app.get("/", (request, response) => {
     //     everyData[i].actions = allActions
     //     allActions.splice(0, allActions.length)
     //     allActions.push(everyData[i+1].action)
-    //   }  
+    //   }
     // }
 
     let index;
@@ -523,7 +523,7 @@ if (command === "addCreatorId") {
 
 app.get("/users/:id", (req, res) => {
   let user_now = req.params.id;
-  let commentary
+  let commentary;
   let searchQuery = `SELECT notes.id AS notes_id, notes.date, notes.behaviour, notes.flock_size, creator_id,
                             users.id AS user_id, user_name
                      FROM notes 
@@ -536,22 +536,21 @@ app.get("/users/:id", (req, res) => {
     let data = result.rows;
     console.log(`zzzzzz `, data);
 
-    let commentQuery = `SELECT * FROM comments WHERE user_id = '${user_now}' ORDER BY notes_id`
-    pool.query(commentQuery, (error1, result1)=> {
-      whenQueryDone(error1, result1)
-      console.log(`users comments`, result1.rows)
-      commentary = result1.rows
+    let commentQuery = `SELECT * FROM comments WHERE user_id = '${user_now}' ORDER BY notes_id`;
+    pool.query(commentQuery, (error1, result1) => {
+      whenQueryDone(error1, result1);
+      console.log(`users comments`, result1.rows);
+      commentary = result1.rows;
 
       if (req.cookies.loggedIn === "true") {
-      res.render(`listing_user`, { data , commentary});
-  
-    } else {
-      res.send(`Please login to see the notes you created`);
-    }
-    })
+        res.render(`listing_user`, { data, commentary });
+      } else {
+        res.send(`Please login to see the notes you created`);
+      }
+    });
     // if (req.cookies.loggedIn === "true") {
     //   res.render(`listing_user`, { data , commentary});
-  
+
     // } else {
     //   res.send(`Please login to see the notes you created`);
     // }
@@ -568,12 +567,16 @@ const userSortSummary = (req, res) => {
       index = resulting.rows[0].id;
       console.log(`aaaaaaaaaaa`, index);
 
-      let notesQuery = `SELECT * FROM notes 
-                      WHERE creator_id = ${index}
-                      ORDER BY id ASC;`;
-      pool.query(notesQuery, (queryError, queryResult) => {
-        whenQueryDone(queryError, queryResult);
-        let data = queryResult.rows;
+      let searchQuery = `SELECT notes.id AS notes_id, notes.date, notes.behaviour, notes.flock_size, creator_id,
+                            users.id AS user_id, user_name
+                     FROM notes 
+                     INNER JOIN users  
+                     ON creator_id = users.id
+                     WHERE creator_id = ${index}
+                     ORDER BY notes.id;`;
+      pool.query(searchQuery, (error, result) => {
+        whenQueryDone(error, result);
+        let data = result.rows;
         console.log(`results before sorting which is all is`, data);
 
         if (req.params.parameter === "date") {
@@ -599,7 +602,21 @@ const userSortSummary = (req, res) => {
               : dynamicDescSort("flock_size")
           );
         }
-        res.render(`listing_user`, { data, idx: index });
+        let commentary;
+        let commentQuery = `SELECT * FROM comments WHERE user_id = '${index}' ORDER BY notes_id`;
+        pool.query(commentQuery, (error1, result1) => {
+          whenQueryDone(error1, result1);
+          console.log(`users comments`, result1.rows);
+          commentary = result1.rows;
+
+          if (req.cookies.loggedIn === "true") {
+            res.render(`listing_user`, { data, idx: index, commentary });
+          } else {
+            res.send(`Please login to see the notes you created`);
+          }
+        });
+
+        // res.render(`listing_user`, { data, idx: index });
       });
     });
   } else {
@@ -647,6 +664,66 @@ const userSortSummary = (req, res) => {
   }
 };
 app.get(`/users/:id/notes-sortby/:parameter/:sortHow`, userSortSummary);
+
+const commentsSortSummary = (req, res) => {
+  let index;
+  if (req.cookies.loggedIn === "true") {
+    const { userEmail } = req.cookies;
+    sqlQuery = `SELECT * FROM users WHERE email = '${userEmail}'`;
+    pool.query(sqlQuery, (erroring, resulting) => {
+      whenQueryDone(erroring, resulting);
+      index = resulting.rows[0].id;
+      console.log(`aaaaaaaaaaa`, index);
+
+    let searchQuery = `SELECT notes.id AS notes_id, notes.date, notes.behaviour, notes.flock_size, creator_id,
+                            users.id AS user_id, user_name
+                     FROM notes 
+                     INNER JOIN users  
+                     ON creator_id = users.id
+                     WHERE creator_id = ${index}
+                     ORDER BY notes.id;`;
+      pool.query(searchQuery, (error, result) => {
+        whenQueryDone(error, result);
+        let data = result.rows;
+
+
+        console.log(`results before sorting which is all is`, data);
+            let commentQuery = `SELECT * FROM comments WHERE user_id = '${index}' ORDER BY notes_id`;
+    pool.query(commentQuery, (error1, result1) => {
+      whenQueryDone(error1, result1);
+      console.log(`users comments`, result1.rows);
+      let commentary = result1.rows;
+
+      if (req.cookies.loggedIn === "true") {
+        if (req.params.parameter === "date") {
+          const ascFn = (a, b) => a.id - b.id;
+          const descFn = (a, b) => b.id - a.id;
+          // sorting condition
+          commentary.sort(req.params.sortHow === `asc` ? ascFn : descFn);
+        } else if (req.params.parameter === "noteId") {
+          // const ascFn  = (a,b)=> {(String(a.behaviour).replace(/ /g, "_").toUpperCase()) >  (String(b.behaviour).replace(/ /g, "_").toUpperCase()) ? 1 : -1}
+          // const descFn = (a,b)=> {(String(a.behaviour).replace(/ /g, "_").toUpperCase()) <  (String(b.behaviour).replace(/ /g, "_").toUpperCase()) ? 1 : -1}
+
+          // sorting condition
+          commentary.sort(
+            req.params.sortHow === `asc`
+              ? dynamicAscSort("notes_id")
+              : dynamicDescSort("notes_id")
+          );
+        }
+        res.render(`listing_user`, { data,  idx: index, commentary });
+      } 
+    });
+        
+     
+      });
+    });
+  } else {
+    index = 0;
+    res.send(`login first`);
+  }
+};
+app.get(`/users/:id/comments-sortby/:parameter/:sortHow`, commentsSortSummary);
 
 // ============= 3POCE7
 // General info adding
@@ -801,13 +878,17 @@ app.get("/behaviours", (request, response) => {
 
 app.get("/behaviours/:id", (request, response) => {
   let behaviourID = request.params.id;
-  sqlQuery = `SELECT * 
+  sqlQuery = `SELECT notes.id, date, flock_size, notes.species, creator_id, 
+                     notes_id, behaviour_id, action, user_name, users.id
               FROM notes
               INNER JOIN notes_behaviour
               ON notes.id = notes_id
               INNER JOIN behaviours 
               ON behaviours.id = behaviour_id
-              WHERE behaviour_id = ${behaviourID}`;
+              INNER JOIN users 
+              ON creator_id = users.id
+              WHERE behaviour_id = ${behaviourID}
+              ORDER BY notes.id`;
   pool.query(sqlQuery, (error, results) => {
     whenQueryDone(error, results);
     console.log(results.rows);
@@ -824,7 +905,7 @@ app.get("/behaviours/:id", (request, response) => {
       });
     } else {
       index = 0;
-      response.render(`listing`, { data, idx: index });
+      response.render(`listing_behaviour`, { data, idx: index });
     }
   });
 });
