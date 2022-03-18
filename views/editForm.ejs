@@ -7,8 +7,8 @@
     </head>
  <body> -->
    <%- include('navigator_bar') -%>
-    <div class="container">
-        <h1>Edit Sighting <%=oneNote.id%></h1> 
+    <div class="container capitalize">
+        <h1>Edit Sighting </h1> 
          <br>
       
       <form action="/note/<%=oneNote.id%>/edit?_method=PUT" method="POST">
