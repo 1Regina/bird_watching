@@ -16,14 +16,26 @@
             <button class="btn btn-dark dropdown-toggle" type="button" id="dropdownMenuButton1" data-bs-toggle="dropdown" aria-expanded="false">
             Arrange By
             </button>
-            <ul class="dropdown-menu" aria-labelledby="dropdownMenuButton1">
-            <li><a class="dropdown-item" href=`/date/asc`>Date (Earliest)</a></li>
-            <li><a class="dropdown-item" href=`/date/desc`>Date (Latest)</a></li>          
-            <li><a class="dropdown-item" href=`/behaviour/asc`>Behaviour (A-Z)</a></li>
-            <li><a class="dropdown-item" href=`/behaviour/desc`>Behaviour (Z-A)</a></li>
-            <li><a class="dropdown-item" href=`/flock_size/asc`>Flock_size (Asc)</a></li>
-            <li><a class="dropdown-item" href=`/flock_size/desc`>Flock_size (Desc)</a></li>
-            </ul>
+      <ul class="dropdown-menu" aria-labelledby="dropdownMenuButton1">
+        <li>
+          <a class="dropdown-item" href="http://localhost:3004/behaviours/:id/date/asc">Date (Earliest)</a>
+        </li>
+        <li>
+          <a class="dropdown-item" href="http://localhost:3004/behaviours/:id/date/desc">Date (Latest)</a>
+        </li>
+        <li>
+          <a class="dropdown-item" href="http://localhost:3004/behaviours/:id/behaviour/asc">Behaviour (A-Z)</a>
+        </li>
+        <li>
+          <a class="dropdown-item" href="http://localhost:3004/behaviours/:id/behaviour/desc">Behaviours (Z-A)</a>
+          </li>
+        <li>
+          <a class="dropdown-item" href="http://localhost:3004/behaviours/:id/flock_size/asc">Flock_size (Asc)</a>
+        </li>
+        <li>
+          <a class="dropdown-item" href="http://localhost:3004/behaviours/:id/flock_size/desc">Flock_size (Desc)</a>
+        </li>
+      </ul>
 
       
             <%let link=`/users/${idx}`%>

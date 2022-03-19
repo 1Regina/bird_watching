@@ -929,11 +929,12 @@ const behaviourSortSummary = (req, res) => {
               ON behaviours.id = notes_behaviour.behaviour_id
               INNER JOIN users 
               ON creator_id = users.id
-              WHERE behaviour_id = ${behaviourID};`
+              WHERE behaviour_id = ${behaviourID}`
               // ORDER BY notes.id`;
-              console.log(`zzzzzzzzzzz`)
+             
       pool.query(searchQuery, (error, result) => {
-        whenQueryDone(error, result);
+         console.log(`zzzzzzzzzzz`)
+        // whenQueryDone(error, result);
         let data = result.rows;
         console.log(`results before sorting which is all is`, data);
 
