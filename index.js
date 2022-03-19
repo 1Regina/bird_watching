@@ -907,118 +907,121 @@ app.get("/behaviours/:id", (request, response) => {
   });
 });
 
-// const behaviourSortSummary = (req, res) => {
-//   let behaviourID = req.params.id;
-//   let userId;
-//   if (req.cookies.loggedIn === "true") {
-//     const { userEmail } = req.cookies;
-//     sqlQuery = `SELECT * FROM users WHERE email = '${userEmail}'`;
-//     pool.query(sqlQuery, (erroring, resulting) => {
-//       whenQueryDone(erroring, resulting);
-//       userId = resulting.rows[0].id;
-//       console.log(`aaaaaaaaaaa`, userId);
+const behaviourSortSummary = (req, res) => {
+  let behaviourID = req.params.id;
+  let userId;
+  
 
-//       let searchQuery = `SELECT notes.id, date, flock_size, notes.species, creator_id, 
-//                      notes_id, behaviour_id, action, user_name, users.id
-//               FROM notes
-//               INNER JOIN notes_behaviour
-//               ON notes.id = notes_id
-//               INNER JOIN behaviours 
-//               ON behaviours.id = behaviour_id
-//               INNER JOIN users 
-//               ON creator_id = users.id
-//               WHERE behaviour_id = ${behaviourID}
-//               ORDER BY notes.id`;
-//       pool.query(searchQuery, (error, result) => {
-//         whenQueryDone(error, result);
-//         let data = result.rows;
-//         console.log(`results before sorting which is all is`, data);
+  if (req.cookies.loggedIn === "true") {
+    const { userEmail } = req.cookies;
+    sqlQuery = `SELECT * FROM users WHERE email = '${userEmail}'`;
+    pool.query(sqlQuery, (erroring, resulting) => {
+      whenQueryDone(erroring, resulting);
+      userId = resulting.rows[0].id;
+      console.log(`aaaaaaaaaaa`, userId);
 
-//         if (req.params.parameter === "date") {
-//           const ascFn = (a, b) => new Date(a.date) - new Date(b.date);
-//           const descFn = (a, b) => new Date(b.date) - new Date(a.date);
-//           // sorting condition
-//           data.sort(req.params.sortHow === `asc` ? ascFn : descFn);
-//         } else if (req.params.parameter === "behaviour") {
-//           // const ascFn  = (a,b)=> {(String(a.behaviour).replace(/ /g, "_").toUpperCase()) >  (String(b.behaviour).replace(/ /g, "_").toUpperCase()) ? 1 : -1}
-//           // const descFn = (a,b)=> {(String(a.behaviour).replace(/ /g, "_").toUpperCase()) <  (String(b.behaviour).replace(/ /g, "_").toUpperCase()) ? 1 : -1}
+      let searchQuery = `SELECT notes.id, date, flock_size, notes.species, creator_id, 
+                     notes_behaviour.notes_id, notes_behaviour.behaviour_id, action, user_name, users.id
+              FROM notes
+              INNER JOIN notes_behaviour
+              ON notes.id = notes_id
+              INNER JOIN behaviours 
+              ON behaviours.id = notes_behaviour.behaviour_id
+              INNER JOIN users 
+              ON creator_id = users.id
+              WHERE behaviour_id = ${behaviourID};`
+              // ORDER BY notes.id`;
+              console.log(`zzzzzzzzzzz`)
+      pool.query(searchQuery, (error, result) => {
+        whenQueryDone(error, result);
+        let data = result.rows;
+        console.log(`results before sorting which is all is`, data);
 
-//           // sorting condition
-//           data.sort(
-//             req.params.sortHow === `asc`
-//               ? dynamicAscSort("behaviour")
-//               : dynamicDescSort("behaviour")
-//           );
-//         } else if (req.params.parameter === "flock_size") {
-//           // sorting condition
-//           data.sort(
-//             req.params.sortHow === `asc`
-//               ? dynamicAscSort("flock_size")
-//               : dynamicDescSort("flock_size")
-//           );
-//         }
-//         console.log(`after sorting`, data);
-//         res.render(`listing_behaviour`, { data, idx: userId });
-//       });
-//     });
-//   }
-  // else {
-  //   userId = 0;
+        if (req.params.parameter === "date") {
+          const ascFn = (a, b) => new Date(a.date) - new Date(b.date);
+          const descFn = (a, b) => new Date(b.date) - new Date(a.date);
+          // sorting condition
+          data.sort(req.params.sortHow === `asc` ? ascFn : descFn);
+        } else if (req.params.parameter === "behaviour") {
+          // const ascFn  = (a,b)=> {(String(a.behaviour).replace(/ /g, "_").toUpperCase()) >  (String(b.behaviour).replace(/ /g, "_").toUpperCase()) ? 1 : -1}
+          // const descFn = (a,b)=> {(String(a.behaviour).replace(/ /g, "_").toUpperCase()) <  (String(b.behaviour).replace(/ /g, "_").toUpperCase()) ? 1 : -1}
 
-  //   let notesQuery = `SELECT notes.id, date, flock_size, notes.species, creator_id,
-  //                    notes_id, behaviour_id, action, user_name, users.id
-  //             FROM notes
-  //             INNER JOIN notes_behaviour
-  //             ON notes.id = notes_id
-  //             INNER JOIN behaviours
-  //             ON behaviours.id = behaviour_id
-  //             INNER JOIN users
-  //             ON creator_id = users.id
-  //             WHERE behaviour_id = ${behaviourID}
-  //             ORDER BY notes.id`;
-  //   pool.query(notesQuery, (queryError, queryResult) => {
-  //     if (queryError) {
-  //       console.log("Error executing query", error.stack);
-  //       response.status(503).send(queryResult.rows);
-  //       return;
-  //     }
-  //     if (queryResult.rows.length === 0) {
-  //       response.status(403).send("no records!");
-  //       return;
-  //     }
-  //     let data = queryResult.rows;
-  //     console.log(`results before sorting which is all is`, data);
+          // sorting condition
+          data.sort(
+            req.params.sortHow === `asc`
+              ? dynamicAscSort("behaviour")
+              : dynamicDescSort("behaviour")
+          );
+        } else if (req.params.parameter === "flock_size") {
+          // sorting condition
+          data.sort(
+            req.params.sortHow === `asc`
+              ? dynamicAscSort("flock_size")
+              : dynamicDescSort("flock_size")
+          );
+        }
+        console.log(`after sorting`, data);
+        res.render(`listing_behaviour`, { data, idx: userId, behaveID: behaviourID });
+      });
+    });
+  }
+  else {
+    userId = 0;
 
-  //     if (req.params.parameter === "date") {
-  //       const ascFn = (a, b) => new Date(a.date) - new Date(b.date);
-  //       const descFn = (a, b) => new Date(b.date) - new Date(a.date);
-  //       // sorting condition
-  //       data.sort(req.params.sortHow === `asc` ? ascFn : descFn);
-  //     } else if (req.params.parameter === "behaviour") {
-  //       // const ascFn  = (a,b)=> {(String(a.behaviour).replace(/ /g, "_").toUpperCase()) >  (String(b.behaviour).replace(/ /g, "_").toUpperCase()) ? 1 : -1}
-  //       // const descFn = (a,b)=> {(String(a.behaviour).replace(/ /g, "_").toUpperCase()) <  (String(b.behaviour).replace(/ /g, "_").toUpperCase()) ? 1 : -1}
+    let notesQuery = `SELECT notes.id, date, flock_size, notes.species, creator_id,
+                     notes_id, behaviour_id, action, user_name, users.id
+              FROM notes
+              INNER JOIN notes_behaviour
+              ON notes.id = notes_id
+              INNER JOIN behaviours
+              ON behaviours.id = behaviour_id
+              INNER JOIN users
+              ON creator_id = users.id
+              WHERE behaviour_id = '${behaviourID}'
+              ORDER BY notes.id`;
+    pool.query(notesQuery, (queryError, queryResult) => {
+      if (queryError) {
+        console.log("Error executing query", error.stack);
+        response.status(503).send(queryResult.rows);
+        return;
+      }
+      if (queryResult.rows.length === 0) {
+        response.status(403).send("no records!");
+        return;
+      }
+      let data = queryResult.rows;
+      console.log(`results before sorting which is all is`, data);
 
-  //       // sorting condition
-  //       data.sort(
-  //         req.params.sortHow === `asc`
-  //           ? dynamicAscSort("behaviour")
-  //           : dynamicDescSort("behaviour")
-  //       );
-  //     } else if (req.params.parameter === "flock_size") {
-  //       // sorting condition
-  //       data.sort(
-  //         req.params.sortHow === `asc`
-  //           ? dynamicAscSort("flock_size")
-  //           : dynamicDescSort("flock_size")
-  //       );
-  //     }
-  //     res.render(`listing`, { data });
-  //   });
+      if (req.params.parameter === "date") {
+        const ascFn = (a, b) => new Date(a.date) - new Date(b.date);
+        const descFn = (a, b) => new Date(b.date) - new Date(a.date);
+        // sorting condition
+        data.sort(req.params.sortHow === `asc` ? ascFn : descFn);
+      } else if (req.params.parameter === "behaviour") {
+        // const ascFn  = (a,b)=> {(String(a.behaviour).replace(/ /g, "_").toUpperCase()) >  (String(b.behaviour).replace(/ /g, "_").toUpperCase()) ? 1 : -1}
+        // const descFn = (a,b)=> {(String(a.behaviour).replace(/ /g, "_").toUpperCase()) <  (String(b.behaviour).replace(/ /g, "_").toUpperCase()) ? 1 : -1}
 
-  // }
-// };
+        // sorting condition
+        data.sort(
+          req.params.sortHow === `asc`
+            ? dynamicAscSort("behaviour")
+            : dynamicDescSort("behaviour")
+        );
+      } else if (req.params.parameter === "flock_size") {
+        // sorting condition
+        data.sort(
+          req.params.sortHow === `asc`
+            ? dynamicAscSort("flock_size")
+            : dynamicDescSort("flock_size")
+        );
+      }
+      res.render(`listing`, { data });
+    });
 
-// app.get(`/behaviours/:id/:parameter/:sortHow`, behaviourSortSummary);
+  }
+};
+
+app.get(`/behaviours/:id/:parameter/:sortHow`, behaviourSortSummary);
 // ============= 3POCE9
 
 // 3.POCE.9: Bird watching comments
