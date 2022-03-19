@@ -491,10 +491,10 @@ app.post("/login", (request, response) => {
     // setCookie('user', user.email, 1)
     // response.cookie("userEmail", user.email);
     const d = new Date();
-    d.setTime(d.getTime() + 3 * 24 * 60 * 60 * 1000);
+    d.setTime(d.getTime() + 1 * 24 * 60 * 60 * 1000);
     let expires = d.toUTCString();
     response.setHeader("Set-Cookie", [
-      `userEmail=${user.email} ; expires=${expires};path=/`,
+      `userEmail=${user.email}; expires=${expires}; path=/`,
     ]);
     response.cookie("loggedIn", true);
     response.redirect(`/`);
@@ -891,6 +891,16 @@ app.get("/behaviours/:id", (request, response) => {
     console.log(results.rows);
     let data = results.rows;
     let index;
+    response.clearCookie("birdBehaviours");
+    // cookie for behaviour id
+    const d = new Date();
+    // 1 hour cookie
+    d.setTime(d.getTime() + 1 * 60 * 60 * 1000);
+    let expires = d.toUTCString();
+    response.setHeader("Set-Cookie", [
+      `birdBehaviour=${behaviourID} ; expires=${expires};path=/behaviours`,
+    ]);
+    // response.cookie("birdBehaviour", `${behaviourID}`)
     if (request.cookies.loggedIn === "true") {
       const { userEmail } = request.cookies;
       sqlQuery = `SELECT * FROM users WHERE email = '${userEmail}'`;
@@ -908,19 +918,18 @@ app.get("/behaviours/:id", (request, response) => {
 });
 
 const behaviourSortSummary = (req, res) => {
-  let behaviourID = req.params.id;
   let userId;
-  
-
+  let { birdBehaviour } = req.cookies;
+  let behaveID = parseInt(birdBehaviour);
+  console.log(`wwwwwwwww`, behaveID);
   if (req.cookies.loggedIn === "true") {
     const { userEmail } = req.cookies;
     sqlQuery = `SELECT * FROM users WHERE email = '${userEmail}'`;
     pool.query(sqlQuery, (erroring, resulting) => {
       whenQueryDone(erroring, resulting);
       userId = resulting.rows[0].id;
-      console.log(`aaaaaaaaaaa`, userId);
 
-      let searchQuery = `SELECT notes.id, date, flock_size, notes.species, creator_id, 
+      let searchQuery = `SELECT notes.id AS notes_id, date, flock_size, notes.species, creator_id, 
                      notes_behaviour.notes_id, notes_behaviour.behaviour_id, action, user_name, users.id
               FROM notes
               INNER JOIN notes_behaviour
@@ -929,14 +938,15 @@ const behaviourSortSummary = (req, res) => {
               ON behaviours.id = notes_behaviour.behaviour_id
               INNER JOIN users 
               ON creator_id = users.id
-              WHERE behaviour_id = ${behaviourID}`
-              // ORDER BY notes.id`;
-             
+              WHERE behaviour_id = '${behaveID}'`;
+      // ORDER BY notes.id`;
+
       pool.query(searchQuery, (error, result) => {
-         console.log(`zzzzzzzzzzz`)
+        whenQueryDone(error, result);
         // whenQueryDone(error, result);
         let data = result.rows;
         console.log(`results before sorting which is all is`, data);
+        console.log(`results before sorting which is all is`, data.length);
 
         if (req.params.parameter === "date") {
           const ascFn = (a, b) => new Date(a.date) - new Date(b.date);
@@ -962,36 +972,29 @@ const behaviourSortSummary = (req, res) => {
           );
         }
         console.log(`after sorting`, data);
-        res.render(`listing_behaviour`, { data, idx: userId, behaveID: behaviourID });
+        res.render(`listing_behaviour`, { data, idx: userId });
       });
     });
-  }
-  else {
+  } else {
     userId = 0;
-
-    let notesQuery = `SELECT notes.id, date, flock_size, notes.species, creator_id,
-                     notes_id, behaviour_id, action, user_name, users.id
+    let searchQuery = `SELECT notes.id AS notes_id, date, flock_size, notes.species, creator_id, 
+                     notes_behaviour.notes_id, notes_behaviour.behaviour_id, action, user_name, users.id
               FROM notes
               INNER JOIN notes_behaviour
               ON notes.id = notes_id
-              INNER JOIN behaviours
-              ON behaviours.id = behaviour_id
-              INNER JOIN users
+              INNER JOIN behaviours 
+              ON behaviours.id = notes_behaviour.behaviour_id
+              INNER JOIN users 
               ON creator_id = users.id
-              WHERE behaviour_id = '${behaviourID}'
-              ORDER BY notes.id`;
-    pool.query(notesQuery, (queryError, queryResult) => {
-      if (queryError) {
-        console.log("Error executing query", error.stack);
-        response.status(503).send(queryResult.rows);
-        return;
-      }
-      if (queryResult.rows.length === 0) {
-        response.status(403).send("no records!");
-        return;
-      }
-      let data = queryResult.rows;
+              WHERE behaviour_id = '${behaveID}'`;
+    // ORDER BY notes.id`;
+
+    pool.query(searchQuery, (error, result) => {
+      whenQueryDone(error, result);
+      // whenQueryDone(error, result);
+      let data = result.rows;
       console.log(`results before sorting which is all is`, data);
+      console.log(`results before sorting which is all is`, data.length);
 
       if (req.params.parameter === "date") {
         const ascFn = (a, b) => new Date(a.date) - new Date(b.date);
@@ -1016,9 +1019,9 @@ const behaviourSortSummary = (req, res) => {
             : dynamicDescSort("flock_size")
         );
       }
-      res.render(`listing`, { data });
+      console.log(`after sorting`, data);
+      res.render(`listing_behaviour`, { data, idx: userId });
     });
-
   }
 };
 
