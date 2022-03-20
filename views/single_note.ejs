@@ -30,17 +30,20 @@
     <br>
     <div class="shadow p-3 mb-5 bg-white rounded capitalize">
       <%for (const [key, value] of Object.entries(details)) {%>
+        <% if (!(key==="id" ) && !(key==="creator_id" ) && !(key==="user_id" ) && !(key==="behaviour" ) &&
+          !(key==="notes_id" ) && !(key==="behaviour_id" ) && !(key==="key" ) ) {%>
 
-        <ul>
-          <h6>
-            <%=key%>
-          </h6>
-          <p class="text-muted">
-            <%=value%>
-          </p>
-        </ul>
+          <ul>
+            <h6>
+              <%=key%>
+            </h6>
+            <p class="text-muted">
+              <%=value%>
+            </p>
+          </ul>
 
-        <%}%>
+          <%}%>
+            <%}%>
     </div>
   </div>
   <div class="container">

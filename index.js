@@ -89,45 +89,50 @@ if (command === "report") {
 
 app.get("/", (request, response) => {
   console.log("request came in");
-  let searchQuery = `SELECT notes.id, notes.date, notes.behaviour, notes.flock_size, creator_id, species,  users.id AS user_id, user_name, email
-                     FROM notes
-                     INNER JOIN users
-                     ON creator_id = users.id
-                     ORDER BY notes.id;`;
-  // let searchQuery = `SELECT notes.id, notes.date, notes.behaviour, notes.flock_size, creator_id, species,
-  //                           users.id AS user_id, user_name, email, notes_id, behaviour_id, action
+  // let searchQuery = `SELECT notes.id, notes.date, notes.behaviour, notes.flock_size, creator_id, species,  users.id AS user_id, user_name, email
   //                    FROM notes
   //                    INNER JOIN users
   //                    ON creator_id = users.id
-  //                    INNER JOIN notes_behaviour
-  //                    ON notes.id = notes_id
-  //                    INNER JOIN behaviours
-  //                    ON behaviours.id = behaviour_id
   //                    ORDER BY notes.id;`;
+  let searchQuery = `SELECT notes.id, notes.date, notes.behaviour, notes.flock_size, creator_id, species,
+                            users.id AS user_id, user_name, email, notes_id, behaviour_id, action
+                     FROM notes
+                     INNER JOIN users
+                     ON creator_id = users.id
+                     INNER JOIN notes_behaviour
+                     ON notes.id = notes_id
+                     INNER JOIN behaviours
+                     ON behaviours.id = behaviour_id
+                     ORDER BY notes.id;`;
   pool.query(searchQuery, (error, result) => {
     whenQueryDone(error, result);
-    let data = result.rows;
-    // console.log(`bbbbbbbbbb`, everyData);
-    // console.log(`ccccccccc`, everyData[0].id)
-    // everyData.forEach((subnote) => {
-    //   if (subnote.id === subnote.id) {
-    //     let itsActions = [];
-    //     itsActions.push(subnote.action);
-    //     console.log(`vvvvvvvvv`, itsActions);
-    //   }
-    // });
+    let everyData = result.rows;
+    console.log(`wwwwwwwwwwwww`, everyData);
 
-    // let allActions = [everyData[0].action]
-    //  console.log(`ccccccccc`, everyData[0].id)
-    // for (let i=0; i<everyData.length; i +=1) {
-    //       if (everyData[i+1].id === everyData[i].id) {
-    //     allActions.push(everyData[i+1].action)
-    //   } else {
-    //     everyData[i].actions = allActions
-    //     allActions.splice(0, allActions.length)
-    //     allActions.push(everyData[i+1].action)
-    //   }
-    // }
+    const combineActionObj = {};
+    everyData.forEach((item) => {
+      if (combineActionObj["note_" + item.notes_id]) {
+        combineActionObj["note_" + item.notes_id].action.push(item.action);
+      } else {
+        // new object
+        const { notes_id, ...newItem } = item;
+        newItem.action = [newItem.action]; // make it an array
+        combineActionObj["note_" + item.notes_id] = newItem;
+      }
+    });
+    console.log(`qqqqqqqqqqqq`, combineActionObj);
+
+    let arrayOfObjects = Object.keys(combineActionObj).map((key) => {
+      let ar = combineActionObj[key];
+
+      // Apppend key if one exists (optional)
+      ar.key = key;
+
+      return ar;
+    });
+    console.log(`iiiiiiiiiiiiii`, arrayOfObjects);
+
+    let data = arrayOfObjects;
 
     let index;
     if (request.cookies.loggedIn === "true") {
@@ -151,23 +156,55 @@ app.get("/note/:id", (request, response) => {
   console.log("request came in");
   let index = request.params.id;
   console.log(`request is index`, index);
-  let singleQuery = `SELECT * from notes WHERE id = ${index};`;
+  let singleQuery = `SELECT notes.id, notes.date, notes.behaviour, notes.flock_size, creator_id, species,  action,
+                            users.id AS user_id, user_name AS created_by, email, notes_id, behaviour_id
+                     FROM notes
+                     INNER JOIN users
+                     ON creator_id = users.id
+                     INNER JOIN notes_behaviour
+                     ON notes.id = notes_id
+                     INNER JOIN behaviours
+                     ON behaviours.id = behaviour_id
+                     WHERE notes.id = ${index}`;
+
+  // let singleQuery = `SELECT * from notes WHERE id = ${index};`;
   console.log(`Single Query`, singleQuery);
   // Query using pg.Pool instead of pg.Client
-  pool.query(
-    `SELECT * from notes WHERE id = ${index};`,
-    (error, queryResult) => {
-      if (error) {
-        console.log("Error executing query", error);
-      }
-      // console.log(`queryResult`, queryResult.rows)
-      let details = queryResult.rows[0];
-      console.log(`details are`, details);
+  pool.query(singleQuery, (error, result) => {
+    whenQueryDone(error, result);
 
-      // put in an object so can use the key-value
-      response.render(`single_note`, { details: details, ind: index });
-    }
-  );
+    console.log(`raw results are`, result.rows);
+    // let details = queryResult.rows[0];
+    // console.log(`details are`, details);
+    let everyData = result.rows;
+    console.log(`wwwwwwwwwwwww`, everyData);
+
+    const combineActionObj = {};
+    everyData.forEach((item) => {
+      if (combineActionObj["note_" + item.notes_id]) {
+        combineActionObj["note_" + item.notes_id].action.push(item.action);
+      } else {
+        // new object
+        const { notes_id, ...newItem } = item;
+        newItem.action = [newItem.action]; // make it an array
+        combineActionObj["note_" + item.notes_id] = newItem;
+      }
+    });
+    console.log(`qqqqqqqqqqqq`, combineActionObj);
+
+    let arrayOfObjects = Object.keys(combineActionObj).map((key) => {
+      let ar = combineActionObj[key];
+
+      // Apppend key if one exists (optional)
+      ar.key = key;
+      return ar;
+    });
+    console.log(`iiiiiiiiiiiiii`, arrayOfObjects);
+    let details = arrayOfObjects[0];
+
+    // put in an object so can use the key-value
+    response.render(`single_note`, { details: details, ind: index });
+  });
 });
 
 // NEW SIGHTING PAGE
