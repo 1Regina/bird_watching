@@ -107,27 +107,6 @@ app.get("/", (request, response) => {
   pool.query(searchQuery, (error, result) => {
     whenQueryDone(error, result);
     let data = result.rows;
-    // console.log(`bbbbbbbbbb`, everyData);
-    // console.log(`ccccccccc`, everyData[0].id)
-    // everyData.forEach((subnote) => {
-    //   if (subnote.id === subnote.id) {
-    //     let itsActions = [];
-    //     itsActions.push(subnote.action);
-    //     console.log(`vvvvvvvvv`, itsActions);
-    //   }
-    // });
-
-    // let allActions = [everyData[0].action]
-    //  console.log(`ccccccccc`, everyData[0].id)
-    // for (let i=0; i<everyData.length; i +=1) {
-    //       if (everyData[i+1].id === everyData[i].id) {
-    //     allActions.push(everyData[i+1].action)
-    //   } else {
-    //     everyData[i].actions = allActions
-    //     allActions.splice(0, allActions.length)
-    //     allActions.push(everyData[i+1].action)
-    //   }
-    // }
 
     let index;
     if (request.cookies.loggedIn === "true") {
@@ -245,16 +224,26 @@ app.post("/note", (request, response) => {
 // EDIT FORM
 app.get("/note/:index/edit", (req, res) => {
   const { index } = req.params; // req.params is an object..destructuring
+  console.log(`rrrrrrrrrr`, index)
   const { userEmail, loggedIn } = req.cookies;
   if (loggedIn === "true") {
-    sqlQuery = `SELECT date, behaviour, flock_size, species, email, notes.id
+    sqlQuery = `SELECT  date, behaviour, flock_size, species, email, notes.id AS noteid,
+                        notes_id, behaviour_id,
+                        behaviours.id AS behaviourid, action
+
                 FROM users
                 INNER JOIN notes 
                 ON notes.creator_id = users.id
+                INNER JOIN notes_behaviour
+                ON notes_id = notes.id
+                INNER JOIN behaviours
+                ON behaviours.id = behaviour_id
                 WHERE notes.id = ${index} ;`;
     pool.query(sqlQuery, (error, result) => {
       whenQueryDone(error, result);
       let oneNote = result.rows[0];
+      // let oneNote = result.rows;
+      console.log(`ttttttt`, oneNote)
       let details = { oneNote };
       if (userEmail === oneNote.email) {
         let speciesQuery = `SELECT * FROM species`;
