@@ -48,16 +48,14 @@
             <tr>
               <!-- <th scope="col"></th> -->
               <th scope="col">Index</th>
-              <th scope="col"></th>
               <th scope="col">Sighted On</th>
               <th scope="col">Behaviour</th>
-              <th scope="col">Flock Size</th>
-              <th scope="col">Creator</th>
               <th scope="col"></th>
+              <th scope="col">Flock Size</th>
+              <th scope="col">Species</th>
+              <th scope="col">Creator</th>
               <th scope="col">Action</th>
               <th scope="col"></th>
-
-
             </tr>
           </thead>
         </table>
@@ -69,7 +67,7 @@
             <div class="shadow p-3 mb-5 bg-white rounded">
               <div class="row">
 
-                <div class="col-sm-2">
+                <div class="col-sm-1">
                   <% let url=`/note/${data[i].notes_id}` %>
                     <% let text=`Note ${i+1}` %>
                       <a href="<%=url %>">
@@ -84,21 +82,28 @@
                     </span>
                 </div>
 
-                <div class="col-sm-2">
-                  <% let behaviour=data[i].behaviour%>
-                    <span>
+                <div class="col-sm-3">
+                  <% data[i].action.forEach((act)=> {%>
+                    <%let behaviour=`- ${act} `%>
                       <%=behaviour%>
-                    </span>
+                        <% }); %>
                 </div>
 
-                <div class="col-sm-2">
+                <div class="col-sm-1">
                   <% let flock_size=data[i].flock_size%>
                     <span>
                       <%=flock_size%>
                     </span>
                 </div>
 
-                <div class="col-sm-2 capitalize">
+                <div class="col-sm-2">
+                  <% let species=data[i].species%>
+                    <span>
+                      <%=species%>
+                    </span>
+                </div>
+
+                <div class="col-sm-1 capitalize">
                   <% let user=data[i].user_name%>
                     <span>
                       <%=user%>
@@ -106,14 +111,12 @@
                 </div>
 
 
-                <div class="col-sm-2">
+                <div class="col-sm-1">
                   <% let update_id=`update ${data[i].id}` %>
                     <form action="/note/<%=data[i].notes_id%>/edit" method="GET">
                       <input type="submit" value="Update" <%=id=update_id %>/>
                     </form>
                 </div>
-
-
               </div>
             </div>
             <!-- </div>        -->
@@ -123,27 +126,27 @@
     </div>
   </div>
 
-  
-    <div class="col-sm-11 text-right">
-      <div class="dropdown">
-        <button class="btn btn-dark dropdown-toggle" type="button" id="dropdownMenuButton1" data-bs-toggle="dropdown"
-          aria-expanded="false">
-          Arrange By
-        </button>
-        <ul class="dropdown-menu" aria-labelledby="dropdownMenuButton1">
-          <li><a class="dropdown-item" href="http://localhost:3004/users/:id/comments-sortby/date/asc">Date (Earliest)</a>
-          </li>
-          <li><a class="dropdown-item" href="http://localhost:3004/users/:id/comments-sortby/date/desc">Date (Latest)</a>
-          </li>
-  
-          <li><a class="dropdown-item" href="http://localhost:3004/users/:id/comments-sortby/noteId/asc">Note
-              (Asc)</a></li>
-          <li><a class="dropdown-item" href="http://localhost:3004/users/:id/comments-sortby/noteId/desc">Note
-              (Desc)</a></li>
-        </ul>
-      </div>
+
+  <div class="col-sm-11 text-right">
+    <div class="dropdown">
+      <button class="btn btn-dark dropdown-toggle" type="button" id="dropdownMenuButton1" data-bs-toggle="dropdown"
+        aria-expanded="false">
+        Arrange By
+      </button>
+      <ul class="dropdown-menu" aria-labelledby="dropdownMenuButton1">
+        <li><a class="dropdown-item" href="http://localhost:3004/users/:id/comments-sortby/date/asc">Date (Earliest)</a>
+        </li>
+        <li><a class="dropdown-item" href="http://localhost:3004/users/:id/comments-sortby/date/desc">Date (Latest)</a>
+        </li>
+
+        <li><a class="dropdown-item" href="http://localhost:3004/users/:id/comments-sortby/noteId/asc">Note
+            (Asc)</a></li>
+        <li><a class="dropdown-item" href="http://localhost:3004/users/:id/comments-sortby/noteId/desc">Note
+            (Desc)</a></li>
+      </ul>
     </div>
-      <div class="container">
+  </div>
+  <div class="container">
     <div class="row">
       <div class="col-sm-12" style="padding-bottom: 30px;">
 

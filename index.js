@@ -401,19 +401,58 @@ function dynamicDescSort(property) {
 
 // sort function sort date, city and flock_size for the opening listing summary page at Main page
 const sortSummary = (req, res) => {
-  sqlQuery = `SELECT * FROM notes ORDER BY id ASC;`;
-  pool.query(sqlQuery, (queryError, queryResult) => {
-    if (queryError) {
-      console.log("Error executing query", error.stack);
-      response.status(503).send(queryResult.rows);
-      return;
-    }
-    if (queryResult.rows.length === 0) {
-      response.status(403).send("no records!");
-      return;
-    }
-    let data = queryResult.rows;
-    console.log(`results before sorting which is all is`, data);
+  // sqlQuery = `SELECT * FROM notes ORDER BY id ASC;`;
+  // pool.query(sqlQuery, (queryError, queryResult) => {
+  //   if (queryError) {
+  //     console.log("Error executing query", error.stack);
+  //     response.status(503).send(queryResult.rows);
+  //     return;
+  //   }
+  //   if (queryResult.rows.length === 0) {
+  //     response.status(403).send("no records!");
+  //     return;
+  //   }
+  //   let data = queryResult.rows;
+  //   console.log(`results before sorting which is all is`, data);
+    let searchQuery = `SELECT notes.id, notes.date, notes.behaviour, notes.flock_size, creator_id, species,
+                            users.id AS user_id, user_name, email, notes_id, behaviour_id, action
+                     FROM notes
+                     INNER JOIN users
+                     ON creator_id = users.id
+                     INNER JOIN notes_behaviour
+                     ON notes.id = notes_id
+                     INNER JOIN behaviours
+                     ON behaviours.id = behaviour_id
+                     ORDER BY notes.id;`;
+  pool.query(searchQuery, (error, result) => {
+    whenQueryDone(error, result);
+    let everyData = result.rows;
+    console.log(`wwwwwwwwwwwww`, everyData);
+
+    const combineActionObj = {};
+    everyData.forEach((item) => {
+      if (combineActionObj["note_" + item.notes_id]) {
+        combineActionObj["note_" + item.notes_id].action.push(item.action);
+      } else {
+        // new object
+        const { notes_id, ...newItem } = item;
+        newItem.action = [newItem.action]; // make it an array
+        combineActionObj["note_" + item.notes_id] = newItem;
+      }
+    });
+    console.log(`qqqqqqqqqqqq`, combineActionObj);
+
+    let arrayOfObjects = Object.keys(combineActionObj).map((key) => {
+      let ar = combineActionObj[key];
+
+      // Apppend key if one exists (optional)
+      ar.key = key;
+
+      return ar;
+    });
+    console.log(`iiiiiiiiiiiiii`, arrayOfObjects);
+
+    let data = arrayOfObjects;
 
     if (req.params.parameter === "date") {
       const ascFn = (a, b) => new Date(a.date) - new Date(b.date);
@@ -561,17 +600,53 @@ if (command === "addCreatorId") {
 app.get("/users/:id", (req, res) => {
   let user_now = req.params.id;
   let commentary;
-  let searchQuery = `SELECT notes.id AS notes_id, notes.date, notes.behaviour, notes.flock_size, creator_id,
-                            users.id AS user_id, user_name
-                     FROM notes 
-                     INNER JOIN users  
+  // let searchQuery = `SELECT notes.id AS notes_id, notes.date, notes.behaviour, notes.flock_size, creator_id,
+  //                           users.id AS user_id, user_name
+  //                    FROM notes 
+  //                    INNER JOIN users  
+  //                    ON creator_id = users.id
+  //                    WHERE creator_id = ${user_now}
+  //                    ORDER BY notes.id;`;
+let searchQuery = `SELECT notes.id, notes.date, notes.behaviour, notes.flock_size, creator_id, species,
+                            users.id AS user_id, user_name, email, notes_id, behaviour_id, action
+                     FROM notes
+                     INNER JOIN users
                      ON creator_id = users.id
+                     INNER JOIN notes_behaviour
+                     ON notes.id = notes_id
+                     INNER JOIN behaviours
+                     ON behaviours.id = behaviour_id
                      WHERE creator_id = ${user_now}
                      ORDER BY notes.id;`;
   pool.query(searchQuery, (error, result) => {
     whenQueryDone(error, result);
-    let data = result.rows;
-    console.log(`zzzzzz `, data);
+    let everyData = result.rows;
+    console.log(`wwwwwwwwwwwww`, everyData);
+
+    const combineActionObj = {};
+    everyData.forEach((item) => {
+      if (combineActionObj["note_" + item.notes_id]) {
+        combineActionObj["note_" + item.notes_id].action.push(item.action);
+      } else {
+        // new object
+        const { notes_id, ...newItem } = item;
+        newItem.action = [newItem.action]; // make it an array
+        combineActionObj["note_" + item.notes_id] = newItem;
+      }
+    });
+    console.log(`qqqqqqqqqqqq`, combineActionObj);
+
+    let arrayOfObjects = Object.keys(combineActionObj).map((key) => {
+      let ar = combineActionObj[key];
+
+      // Apppend key if one exists (optional)
+      ar.key = key;
+
+      return ar;
+    });
+    console.log(`iiiiiiiiiiiiii`, arrayOfObjects);
+
+    let data = arrayOfObjects;
 
     let commentQuery = `SELECT * FROM comments WHERE user_id = '${user_now}' ORDER BY notes_id`;
     pool.query(commentQuery, (error1, result1) => {
@@ -604,17 +679,57 @@ const userSortSummary = (req, res) => {
       index = resulting.rows[0].id;
       console.log(`aaaaaaaaaaa`, index);
 
-      let searchQuery = `SELECT notes.id AS notes_id, notes.date, notes.behaviour, notes.flock_size, creator_id,
-                            users.id AS user_id, user_name
-                     FROM notes 
-                     INNER JOIN users  
+      // let searchQuery = `SELECT notes.id AS notes_id, notes.date, notes.behaviour, notes.flock_size, species, creator_id,
+      //                       users.id AS user_id, user_name
+      //                FROM notes 
+      //                INNER JOIN users  
+      //                ON creator_id = users.id
+      //                WHERE creator_id = ${index}
+      //                ORDER BY notes.id;`;
+      // pool.query(searchQuery, (error, result) => {
+      //   whenQueryDone(error, result);
+      //   let data = result.rows;
+      //   console.log(`results before sorting which is all is`, data);
+      let searchQuery = `SELECT notes.id, notes.date, notes.behaviour, notes.flock_size, creator_id, species,
+                            users.id AS user_id, user_name, email, notes_id, behaviour_id, action
+                     FROM notes
+                     INNER JOIN users
                      ON creator_id = users.id
+                     INNER JOIN notes_behaviour
+                     ON notes.id = notes_id
+                     INNER JOIN behaviours
+                     ON behaviours.id = behaviour_id
                      WHERE creator_id = ${index}
                      ORDER BY notes.id;`;
-      pool.query(searchQuery, (error, result) => {
-        whenQueryDone(error, result);
-        let data = result.rows;
-        console.log(`results before sorting which is all is`, data);
+  pool.query(searchQuery, (error, result) => {
+    whenQueryDone(error, result);
+    let everyData = result.rows;
+    console.log(`wwwwwwwwwwwww`, everyData);
+
+    const combineActionObj = {};
+    everyData.forEach((item) => {
+      if (combineActionObj["note_" + item.notes_id]) {
+        combineActionObj["note_" + item.notes_id].action.push(item.action);
+      } else {
+        // new object
+        const { notes_id, ...newItem } = item;
+        newItem.action = [newItem.action]; // make it an array
+        combineActionObj["note_" + item.notes_id] = newItem;
+      }
+    });
+    console.log(`qqqqqqqqqqqq`, combineActionObj);
+
+    let arrayOfObjects = Object.keys(combineActionObj).map((key) => {
+      let ar = combineActionObj[key];
+
+      // Apppend key if one exists (optional)
+      ar.key = key;
+
+      return ar;
+    });
+    console.log(`iiiiiiiiiiiiii`, arrayOfObjects);
+
+    let data = arrayOfObjects;
 
         if (req.params.parameter === "date") {
           const ascFn = (a, b) => new Date(a.date) - new Date(b.date);

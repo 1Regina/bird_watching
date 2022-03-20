@@ -48,13 +48,12 @@
             <tr>
               <!-- <th scope="col"></th> -->
               <th scope="col">Index</th>
-              <th scope="col"></th>
-              <th scope="col">Date</th>
+              <th scope="col">Sighted On</th>
               <th scope="col">Behaviour</th>
+              <th scope="col"></th>
               <th scope="col">Flock Size</th>
               <th scope="col">Species</th>
               <th scope="col">Creator</th>
-              <th scope="col"></th>
               <th scope="col">Action</th>
               <th scope="col"></th>
 
@@ -85,26 +84,16 @@
                     </span>
                 </div>
 
-                <div class="col-sm-2">
-                  <% let behaviour=data[i].action%>
-                    <span>
-                      <%=behaviour%>
-                    </span>
-                </div>
+ 
 
-                <div class="col-sm-2">
+                <div class="col-sm-3">
                   <% for (let j=0 ; j < data[i].action.length; j+=1) {%>
                     <%let behaviour=`- ${data[i].action[j]} \t `%>
                       <%=behaviour%>
                         <% }; %>
                 </div>
 
-                <div class="col-sm-2">
-                  <% data[i].action.forEach((act)=> {%>
-                    <%let behaviour=`- ${act} `%>
-                      <%=behaviour%>
-                        <% }); %>
-                </div>
+
 
                 <div class="col-sm-1">
                   <% let flock_size=data[i].flock_size%>
@@ -120,7 +109,7 @@
                     </span>
                 </div>
 
-                <div class="col-sm-2 capitalize">
+                <div class="col-sm-1 capitalize">
                   <% let user=data[i].user_name%>
                     <span>
                       <%=user%>
