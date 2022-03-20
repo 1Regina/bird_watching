@@ -931,19 +931,62 @@ app.get(`/species/all`, (request, res) => {
 
 app.get(`/species/:index`, (request, response) => {
   const { index } = request.params;
-  sqlQuery = `SELECT species.id AS species_id, name, scientific_name, 
-                     notes.id, date, behaviour, flock_size, creator_id, species, users.id, user_name
-              FROM species
-              INNER JOIN notes
-              ON species = name           
-              INNER JOIN users
-              ON creator_id = users.id
-              WHERE species.id = ${index}
-              ORDER BY notes.id`;
-  pool.query(sqlQuery, (error, result) => {
+  // sqlQuery = `SELECT species.id AS species_id, name, scientific_name, 
+  //                    notes.id, date, behaviour, flock_size, creator_id, species, users.id, user_name
+  //             FROM species
+  //             INNER JOIN notes
+  //             ON species = name           
+  //             INNER JOIN users
+  //             ON creator_id = users.id
+  //             WHERE species.id = ${index}
+  //             ORDER BY notes.id`;
+  // pool.query(sqlQuery, (error, result) => {
+  //   whenQueryDone(error, result);
+  //   let data = result.rows;
+  //   console.log(`aaaaaaaaaa`, data);
+    let searchQuery = `SELECT notes.id, notes.date, notes.behaviour, notes.flock_size, creator_id, species, 
+                            species.id, species.name,   
+                            users.id AS user_id, user_name, email, notes_id, behaviour_id, action
+                     FROM notes
+                     INNER JOIN users
+                     ON creator_id = users.id
+                     INNER JOIN notes_behaviour
+                     ON notes.id = notes_id
+                     INNER JOIN behaviours
+                     ON behaviours.id = behaviour_id
+                     INNER JOIN species
+                     ON species.name = species
+                     WHERE species.id = ${index}
+                     ORDER BY notes.id;`;
+  pool.query(searchQuery, (error, result) => {
     whenQueryDone(error, result);
-    let data = result.rows;
-    console.log(`aaaaaaaaaa`, data);
+    let everyData = result.rows;
+    console.log(`wwwwwwwwwwwww`, everyData);
+
+    const combineActionObj = {};
+    everyData.forEach((item) => {
+      if (combineActionObj["note_" + item.notes_id]) {
+        combineActionObj["note_" + item.notes_id].action.push(item.action);
+      } else {
+        // new object
+        const { notes_id, ...newItem } = item;
+        newItem.action = [newItem.action]; // make it an array
+        combineActionObj["note_" + item.notes_id] = newItem;
+      }
+    });
+    console.log(`qqqqqqqqqqqq`, combineActionObj);
+
+    let arrayOfObjects = Object.keys(combineActionObj).map((key) => {
+      let ar = combineActionObj[key];
+
+      // Apppend key if one exists (optional)
+      ar.key = key;
+
+      return ar;
+    });
+    console.log(`iiiiiiiiiiiiii`, arrayOfObjects);
+
+    let data = arrayOfObjects;
 
     let ind;
     if (request.cookies.loggedIn === "true") {
@@ -952,6 +995,7 @@ app.get(`/species/:index`, (request, response) => {
       pool.query(userQuery, (error1, result1) => {
         whenQueryDone(error1, result1);
         ind = result1.rows[0].id;
+  
       });
     } else {
       ind = 0;
