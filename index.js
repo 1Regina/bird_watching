@@ -284,15 +284,60 @@ app.get("/note/:index/edit", (req, res) => {
   const { index } = req.params; // req.params is an object..destructuring
   const { userEmail, loggedIn } = req.cookies;
   if (loggedIn === "true") {
-    sqlQuery = `SELECT date, behaviour, flock_size, species, email, notes.id
-                FROM users
-                INNER JOIN notes 
-                ON notes.creator_id = users.id
-                WHERE notes.id = ${index} ;`;
-    pool.query(sqlQuery, (error, result) => {
+    let searchQuery = `SELECT notes.id, notes.date, notes.flock_size, creator_id, species,
+                            users.id AS user_id, user_name, email, notes_id, behaviour_id, action
+                     FROM notes
+                     INNER JOIN users
+                     ON creator_id = users.id
+                     INNER JOIN notes_behaviour
+                     ON notes.id = notes_id
+                     INNER JOIN behaviours
+                     ON behaviours.id = behaviour_id
+                     WHERE notes.id = ${index}
+                     ORDER BY notes.id;`;
+    pool.query(searchQuery, (error, result) => {
       whenQueryDone(error, result);
-      let oneNote = result.rows[0];
+      let everyData = result.rows;
+      console.log(`wwwwwwwwwwwww`, everyData);
+
+      const combineActionObj = {};
+      everyData.forEach((item) => {
+        if (combineActionObj["note_" + item.notes_id]) {
+          combineActionObj["note_" + item.notes_id].action.push(item.action);
+        } else {
+          // new object
+          const { notes_id, ...newItem } = item;
+          newItem.action = [newItem.action]; // make it an array
+          combineActionObj["note_" + item.notes_id] = newItem;
+        }
+      });
+      console.log(`qqqqqqqqqqqq`, combineActionObj);
+
+      let arrayOfObjects = Object.keys(combineActionObj).map((key) => {
+        let ar = combineActionObj[key];
+
+        // Apppend key if one exists (optional)
+        ar.key = key;
+
+        return ar;
+      });
+      console.log(`iiiiiiiiiiiiii`, arrayOfObjects);
+
+      let data = arrayOfObjects;
+      let oneNote = data[0];
       let details = { oneNote };
+      console.log(`oooooooooo`, details);
+
+      let behaviourQuery = `SELECT * FROM behaviours`;
+      pool.query(behaviourQuery, (behaveError, behaveResult) => {
+        whenQueryDone(behaveError, behaveResult);
+        console.log(`ssssssssssssssssss`, behaveResult.rows);
+        let allBehaviour = []
+        for (let i = 0; i < behaveResult.rows.length ; i+=1) {
+          allBehaviour.push(behaveResult.rows[i].action)
+          details.allBehaviour = allBehaviour
+        }
+      });
       if (userEmail === oneNote.email) {
         let speciesQuery = `SELECT * FROM species`;
         pool.query(speciesQuery, (error1, result1) => {
@@ -300,6 +345,7 @@ app.get("/note/:index/edit", (req, res) => {
           let birds = result1.rows;
           console.log(`aaaaaaaa`, birds);
           details.birdName = birds;
+          console.log(`kkkkkkkkkkkkkk`, details)
           res.render(`editForm`, details);
         });
       } else {
@@ -414,7 +460,7 @@ const sortSummary = (req, res) => {
   //   }
   //   let data = queryResult.rows;
   //   console.log(`results before sorting which is all is`, data);
-    let searchQuery = `SELECT notes.id, notes.date, notes.behaviour, notes.flock_size, creator_id, species,
+  let searchQuery = `SELECT notes.id, notes.date, notes.behaviour, notes.flock_size, creator_id, species,
                             users.id AS user_id, user_name, email, notes_id, behaviour_id, action
                      FROM notes
                      INNER JOIN users
@@ -602,12 +648,12 @@ app.get("/users/:id", (req, res) => {
   let commentary;
   // let searchQuery = `SELECT notes.id AS notes_id, notes.date, notes.behaviour, notes.flock_size, creator_id,
   //                           users.id AS user_id, user_name
-  //                    FROM notes 
-  //                    INNER JOIN users  
+  //                    FROM notes
+  //                    INNER JOIN users
   //                    ON creator_id = users.id
   //                    WHERE creator_id = ${user_now}
   //                    ORDER BY notes.id;`;
-let searchQuery = `SELECT notes.id, notes.date, notes.behaviour, notes.flock_size, creator_id, species,
+  let searchQuery = `SELECT notes.id, notes.date, notes.behaviour, notes.flock_size, creator_id, species,
                             users.id AS user_id, user_name, email, notes_id, behaviour_id, action
                      FROM notes
                      INNER JOIN users
@@ -681,8 +727,8 @@ const userSortSummary = (req, res) => {
 
       // let searchQuery = `SELECT notes.id AS notes_id, notes.date, notes.behaviour, notes.flock_size, species, creator_id,
       //                       users.id AS user_id, user_name
-      //                FROM notes 
-      //                INNER JOIN users  
+      //                FROM notes
+      //                INNER JOIN users
       //                ON creator_id = users.id
       //                WHERE creator_id = ${index}
       //                ORDER BY notes.id;`;
@@ -701,35 +747,35 @@ const userSortSummary = (req, res) => {
                      ON behaviours.id = behaviour_id
                      WHERE creator_id = ${index}
                      ORDER BY notes.id;`;
-  pool.query(searchQuery, (error, result) => {
-    whenQueryDone(error, result);
-    let everyData = result.rows;
-    console.log(`wwwwwwwwwwwww`, everyData);
+      pool.query(searchQuery, (error, result) => {
+        whenQueryDone(error, result);
+        let everyData = result.rows;
+        console.log(`wwwwwwwwwwwww`, everyData);
 
-    const combineActionObj = {};
-    everyData.forEach((item) => {
-      if (combineActionObj["note_" + item.notes_id]) {
-        combineActionObj["note_" + item.notes_id].action.push(item.action);
-      } else {
-        // new object
-        const { notes_id, ...newItem } = item;
-        newItem.action = [newItem.action]; // make it an array
-        combineActionObj["note_" + item.notes_id] = newItem;
-      }
-    });
-    console.log(`qqqqqqqqqqqq`, combineActionObj);
+        const combineActionObj = {};
+        everyData.forEach((item) => {
+          if (combineActionObj["note_" + item.notes_id]) {
+            combineActionObj["note_" + item.notes_id].action.push(item.action);
+          } else {
+            // new object
+            const { notes_id, ...newItem } = item;
+            newItem.action = [newItem.action]; // make it an array
+            combineActionObj["note_" + item.notes_id] = newItem;
+          }
+        });
+        console.log(`qqqqqqqqqqqq`, combineActionObj);
 
-    let arrayOfObjects = Object.keys(combineActionObj).map((key) => {
-      let ar = combineActionObj[key];
+        let arrayOfObjects = Object.keys(combineActionObj).map((key) => {
+          let ar = combineActionObj[key];
 
-      // Apppend key if one exists (optional)
-      ar.key = key;
+          // Apppend key if one exists (optional)
+          ar.key = key;
 
-      return ar;
-    });
-    console.log(`iiiiiiiiiiiiii`, arrayOfObjects);
+          return ar;
+        });
+        console.log(`iiiiiiiiiiiiii`, arrayOfObjects);
 
-    let data = arrayOfObjects;
+        let data = arrayOfObjects;
 
         if (req.params.parameter === "date") {
           const ascFn = (a, b) => new Date(a.date) - new Date(b.date);
@@ -931,11 +977,11 @@ app.get(`/species/all`, (request, res) => {
 
 app.get(`/species/:index`, (request, response) => {
   const { index } = request.params;
-  // sqlQuery = `SELECT species.id AS species_id, name, scientific_name, 
+  // sqlQuery = `SELECT species.id AS species_id, name, scientific_name,
   //                    notes.id, date, behaviour, flock_size, creator_id, species, users.id, user_name
   //             FROM species
   //             INNER JOIN notes
-  //             ON species = name           
+  //             ON species = name
   //             INNER JOIN users
   //             ON creator_id = users.id
   //             WHERE species.id = ${index}
@@ -944,16 +990,16 @@ app.get(`/species/:index`, (request, response) => {
   //   whenQueryDone(error, result);
   //   let data = result.rows;
   //   console.log(`aaaaaaaaaa`, data);
-    response.clearCookie("birdSpecies");
-    // cookie for behaviour id
-    const d = new Date();
-    // 1 hour cookie
-    d.setTime(d.getTime() + 1 * 60 * 60 * 1000);
-    let expires = d.toUTCString();
-    response.setHeader("Set-Cookie", [
-      `birdSpecies=${index} ; expires=${expires};path=/species`,
-    ]);
-    let searchQuery = `SELECT notes.id, notes.date, notes.behaviour, notes.flock_size, creator_id, species, 
+  response.clearCookie("birdSpecies");
+  // cookie for behaviour id
+  const d = new Date();
+  // 1 hour cookie
+  d.setTime(d.getTime() + 1 * 60 * 60 * 1000);
+  let expires = d.toUTCString();
+  response.setHeader("Set-Cookie", [
+    `birdSpecies=${index} ; expires=${expires};path=/species`,
+  ]);
+  let searchQuery = `SELECT notes.id, notes.date, notes.behaviour, notes.flock_size, creator_id, species, 
                             species.id, species.name,   
                             users.id AS user_id, user_name, email, notes_id, behaviour_id, action
                      FROM notes
@@ -1004,7 +1050,6 @@ app.get(`/species/:index`, (request, response) => {
       pool.query(userQuery, (error1, result1) => {
         whenQueryDone(error1, result1);
         ind = result1.rows[0].id;
-  
       });
     } else {
       ind = 0;
@@ -1014,7 +1059,6 @@ app.get(`/species/:index`, (request, response) => {
 });
 
 const speciesSortSummary = (req, res) => {
-
   let { birdSpecies } = req.cookies;
   let speciesID = parseInt(birdSpecies);
   console.log(`wwwwwwwww`, speciesID);
@@ -1031,7 +1075,7 @@ const speciesSortSummary = (req, res) => {
   //   }
   //   let data = queryResult.rows;
   //   console.log(`results before sorting which is all is`, data);
-    let searchQuery = `SELECT notes.id, notes.date, notes.behaviour, notes.flock_size, creator_id, species, species.id AS species_id, name,
+  let searchQuery = `SELECT notes.id, notes.date, notes.behaviour, notes.flock_size, creator_id, species, species.id AS species_id, name,
                             users.id AS user_id, user_name, email, notes_id, behaviour_id, action
                      FROM notes
                      INNER JOIN users
