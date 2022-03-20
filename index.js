@@ -944,6 +944,15 @@ app.get(`/species/:index`, (request, response) => {
   //   whenQueryDone(error, result);
   //   let data = result.rows;
   //   console.log(`aaaaaaaaaa`, data);
+    response.clearCookie("birdSpecies");
+    // cookie for behaviour id
+    const d = new Date();
+    // 1 hour cookie
+    d.setTime(d.getTime() + 1 * 60 * 60 * 1000);
+    let expires = d.toUTCString();
+    response.setHeader("Set-Cookie", [
+      `birdSpecies=${index} ; expires=${expires};path=/species`,
+    ]);
     let searchQuery = `SELECT notes.id, notes.date, notes.behaviour, notes.flock_size, creator_id, species, 
                             species.id, species.name,   
                             users.id AS user_id, user_name, email, notes_id, behaviour_id, action
@@ -1000,9 +1009,112 @@ app.get(`/species/:index`, (request, response) => {
     } else {
       ind = 0;
     }
-    response.render(`listing`, { data, idx: ind });
+    response.render(`listing_species`, { data, idx: ind });
   });
 });
+
+const speciesSortSummary = (req, res) => {
+
+  let { birdSpecies } = req.cookies;
+  let speciesID = parseInt(birdSpecies);
+  console.log(`wwwwwwwww`, speciesID);
+  // sqlQuery = `SELECT * FROM notes ORDER BY id ASC;`;
+  // pool.query(sqlQuery, (queryError, queryResult) => {
+  //   if (queryError) {
+  //     console.log("Error executing query", error.stack);
+  //     response.status(503).send(queryResult.rows);
+  //     return;
+  //   }
+  //   if (queryResult.rows.length === 0) {
+  //     response.status(403).send("no records!");
+  //     return;
+  //   }
+  //   let data = queryResult.rows;
+  //   console.log(`results before sorting which is all is`, data);
+    let searchQuery = `SELECT notes.id, notes.date, notes.behaviour, notes.flock_size, creator_id, species, species.id AS species_id, name,
+                            users.id AS user_id, user_name, email, notes_id, behaviour_id, action
+                     FROM notes
+                     INNER JOIN users
+                     ON creator_id = users.id
+                     INNER JOIN notes_behaviour
+                     ON notes.id = notes_id
+                     INNER JOIN behaviours
+                     ON behaviours.id = behaviour_id
+                     INNER JOIN species
+                     ON species.name = species
+                     WHERE species.id = ${speciesID}
+                     ORDER BY notes.id;`;
+  pool.query(searchQuery, (error, result) => {
+    whenQueryDone(error, result);
+    let everyData = result.rows;
+    console.log(`wwwwwwwwwwwww`, everyData);
+
+    const combineActionObj = {};
+    everyData.forEach((item) => {
+      if (combineActionObj["note_" + item.notes_id]) {
+        combineActionObj["note_" + item.notes_id].action.push(item.action);
+      } else {
+        // new object
+        const { notes_id, ...newItem } = item;
+        newItem.action = [newItem.action]; // make it an array
+        combineActionObj["note_" + item.notes_id] = newItem;
+      }
+    });
+    console.log(`qqqqqqqqqqqq`, combineActionObj);
+
+    let arrayOfObjects = Object.keys(combineActionObj).map((key) => {
+      let ar = combineActionObj[key];
+
+      // Apppend key if one exists (optional)
+      ar.key = key;
+
+      return ar;
+    });
+    console.log(`iiiiiiiiiiiiii`, arrayOfObjects);
+
+    let data = arrayOfObjects;
+
+    if (req.params.parameter === "date") {
+      const ascFn = (a, b) => new Date(a.date) - new Date(b.date);
+      const descFn = (a, b) => new Date(b.date) - new Date(a.date);
+      // sorting condition
+      data.sort(req.params.sortHow === `asc` ? ascFn : descFn);
+    } else if (req.params.parameter === "behaviour") {
+      // const ascFn  = (a,b)=> {(String(a.behaviour).replace(/ /g, "_").toUpperCase()) >  (String(b.behaviour).replace(/ /g, "_").toUpperCase()) ? 1 : -1}
+      // const descFn = (a,b)=> {(String(a.behaviour).replace(/ /g, "_").toUpperCase()) <  (String(b.behaviour).replace(/ /g, "_").toUpperCase()) ? 1 : -1}
+
+      // sorting condition
+      data.sort(
+        req.params.sortHow === `asc`
+          ? dynamicAscSort("behaviour")
+          : dynamicDescSort("behaviour")
+      );
+    } else if (req.params.parameter === "flock_size") {
+      // sorting condition
+      data.sort(
+        req.params.sortHow === `asc`
+          ? dynamicAscSort("flock_size")
+          : dynamicDescSort("flock_size")
+      );
+    }
+    let index;
+    if (req.cookies.loggedIn === "true") {
+      const { userEmail } = req.cookies;
+      sqlQuery = `SELECT * FROM users WHERE email = '${userEmail}'`;
+      pool.query(sqlQuery, (erroring, resulting) => {
+        whenQueryDone(erroring, resulting);
+        index = resulting.rows[0].id;
+        console.log(`aaaaaaaaaaa`, index);
+        res.render(`listing_species`, { data, idx: index });
+      });
+    } else {
+      index = 0;
+      res.render(`listing_species`, { data, idx: index });
+    }
+    // res.render(`listing`, { data });
+  });
+};
+app.get(`/species/:id/:parameter/:sortHow`, speciesSortSummary);
 
 app.get(`/species/:index/edit`, (request, response) => {
   const { index } = request.params;
