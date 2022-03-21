@@ -332,10 +332,10 @@ app.get("/note/:index/edit", (req, res) => {
       pool.query(behaviourQuery, (behaveError, behaveResult) => {
         whenQueryDone(behaveError, behaveResult);
         console.log(`ssssssssssssssssss`, behaveResult.rows);
-        let allBehaviour = []
-        for (let i = 0; i < behaveResult.rows.length ; i+=1) {
-          allBehaviour.push(behaveResult.rows[i].action)
-          details.allBehaviour = allBehaviour
+        let allBehaviour = [];
+        for (let i = 0; i < behaveResult.rows.length; i += 1) {
+          allBehaviour.push(behaveResult.rows[i].action);
+          details.allBehaviour = allBehaviour;
         }
       });
       if (userEmail === oneNote.email) {
@@ -345,7 +345,7 @@ app.get("/note/:index/edit", (req, res) => {
           let birds = result1.rows;
           console.log(`aaaaaaaa`, birds);
           details.birdName = birds;
-          console.log(`kkkkkkkkkkkkkk`, details)
+          console.log(`kkkkkkkkkkkkkk`, details);
           res.render(`editForm`, details);
         });
       } else {
@@ -357,26 +357,115 @@ app.get("/note/:index/edit", (req, res) => {
   }
 });
 
-app.put("/note/:index_a/edit", (req, res) => {
-  const { index_a } = req.params;
-  console.log(`index is`, index_a);
-  console.log(`the form entire info`, req.body);
+// app.put("/note/:index_a/edit", (req, res) => {
+//   const { index_a } = req.params;
+//   console.log(`index is`, index_a);
+//   console.log(`the form entire info`, req.body);
 
-  // UPDATE
-  let newData = req.body;
+//   // UPDATE
+//   let newData = req.body;
+//   let actionId;
+//   let actionID = [];
+//   sqlQuery = `UPDATE notes SET date = '${newData.date}', flock_size = '${newData.flock_size}', species = '${newData.species}' WHERE id = '${index_a}';`;
+//   console.log(`the query is `, sqlQuery);
+//   pool.query(sqlQuery, (error, results) => {
+//     whenQueryDone(error, results);
 
-  sqlQuery = `UPDATE notes SET date = '${newData.date}', behaviour = '${newData.behaviour}', flock_size = '${newData.flock_size}', species = '${newData.species}' WHERE id = '${index_a}';`;
-  console.log(`the query is `, sqlQuery);
-  pool.query(sqlQuery, (error, results) => {
-    whenQueryDone(error, results);
-  });
+//     console.log(`[[[[[[`, newData.behaviour);
 
-  // extract data to display
+//     newData.behaviour.forEach((act) => {
+//       let findBehaviourIdQuery = `SELECT id FROM behaviours WHERE action = '${act}'`;
+//       pool.query(findBehaviourIdQuery, (errorBeID, resultsBeID) => {
+//         whenQueryDone(errorBeID, resultsBeID);
+//         actionId = resultsBeID.rows[0].id;
+//         console.log(`yyyyyyyyyyyy`, actionId);
+//         actionID.push(actionId);
+//       });
+//     });
 
-  let details = newData;
+//     //DELETE RECORDS AND RESET PRIMARY NEW IN
+//     let deleteNoteBehaviour = `DELETE FROM notes_behaviour WHERE notes_id = '${index_a}' returning *`;
+//     pool.query(deleteNoteBehaviour, (errorDel, resultDel) => {
+//       whenQueryDone(errorDel, resultDel);
+//       console.log(`This is what got deleted`, resultDel.rows);
 
-  res.render(`single_note`, { details, ind: index_a });
-});
+//       // let resetQuery = `SET @count =0;
+//       //                   UPDATE notes_behaviour SET notes_behaviour.id = @count:= @count + 1`;
+//       // pool.query(resetQuery, (resetError, resetResult) => {
+//       //   whenQueryDone(resetError, resetResult);
+//       // console.log(`aasdasdsadasdas`, resetResult.rows);
+
+//       // update full current selection
+//       console.log(`the pushed array`, actionID);
+//       actionID.forEach((e) => {
+//         let updateBehaviourQuery = `INSERT INTO notes_behaviour (notes_id, behaviour_id) VALUES ('${index_a}', '${e}')`;
+//         console.log(`rrrrrrrrrr`, updateBehaviourQuery)
+//         pool.query(updateBehaviourQuery, (updateError, updateResult) => {
+//           whenQueryDone(updateError, updateResult);
+//           console.log(`ddddddddddddd`, updateResult.rows);
+
+//           // ReDraw the data
+//           let searchQuery = `SELECT notes.id, notes.date, notes.behaviour, notes.flock_size, creator_id, species,
+//                             users.id AS user_id, user_name, email, notes_id, behaviour_id, action
+//                      FROM notes
+//                      INNER JOIN users
+//                      ON creator_id = users.id
+//                      INNER JOIN notes_behaviour
+//                      ON notes.id = notes_id
+//                      INNER JOIN behaviours
+//                      ON behaviours.id = behaviour_id
+//                      WHERE notes.id = '${index_a}'`;
+
+//           pool.query(searchQuery, (error, result) => {
+//             whenQueryDone(error, result);
+//             let everyData = result.rows;
+//             console.log(`wwwwwwwwwwwww`, everyData);
+
+//             const combineActionObj = {};
+//             everyData.forEach((item) => {
+//               if (combineActionObj["note_" + item.notes_id]) {
+//                 combineActionObj["note_" + item.notes_id].action.push(
+//                   item.action
+//                 );
+//               } else {
+//                 // new object
+//                 const { notes_id, ...newItem } = item;
+//                 newItem.action = [newItem.action]; // make it an array
+//                 combineActionObj["note_" + item.notes_id] = newItem;
+//               }
+//             });
+//             console.log(`qqqqqqqqqqqq`, combineActionObj);
+
+//             let arrayOfObjects = Object.keys(combineActionObj).map((key) => {
+//               let ar = combineActionObj[key];
+
+//               // Apppend key if one exists (optional)
+//               ar.key = key;
+
+//               return ar;
+//             });
+//             console.log(`iiiiiiiiiiiiii`, arrayOfObjects);
+
+//             let data = arrayOfObjects;
+
+//             // extract data to display
+
+//             let details = data[0];
+
+//             res.render(`single_note`, { details, ind: index_a });
+//           });
+//         });
+//       });
+//       // });
+//     });
+//   });
+
+// // extract data to display
+
+// let details = newData;
+
+// res.render(`single_note`, { details, ind: index_a });
+// });
 
 app.delete("/note/:index/delete", (request, response) => {
   console.log(`aaaaaaaaaaaa`);
@@ -873,16 +962,56 @@ const commentsSortSummary = (req, res) => {
       index = resulting.rows[0].id;
       console.log(`aaaaaaaaaaa`, index);
 
-      let searchQuery = `SELECT notes.id AS notes_id, notes.date, notes.behaviour, notes.flock_size, creator_id,
-                            users.id AS user_id, user_name
-                     FROM notes 
-                     INNER JOIN users  
+      // let searchQuery = `SELECT notes.id AS notes_id, notes.date, notes.behaviour, notes.flock_size, creator_id,
+      //                       users.id AS user_id, user_name
+      //                FROM notes
+      //                INNER JOIN users
+      //                ON creator_id = users.id
+      //                WHERE creator_id = ${index}
+      //                ORDER BY notes.id;`;
+      // pool.query(searchQuery, (error, result) => {
+      //   whenQueryDone(error, result);
+      //   let data = result.rows;
+      let searchQuery = `SELECT notes.id, notes.date, notes.behaviour, notes.flock_size, creator_id, species,
+                            users.id AS user_id, user_name, email, notes_id, behaviour_id, action
+                     FROM notes
+                     INNER JOIN users
                      ON creator_id = users.id
+                     INNER JOIN notes_behaviour
+                     ON notes.id = notes_id
+                     INNER JOIN behaviours
+                     ON behaviours.id = behaviour_id
                      WHERE creator_id = ${index}
                      ORDER BY notes.id;`;
       pool.query(searchQuery, (error, result) => {
         whenQueryDone(error, result);
-        let data = result.rows;
+        let everyData = result.rows;
+        console.log(`wwwwwwwwwwwww`, everyData);
+
+        const combineActionObj = {};
+        everyData.forEach((item) => {
+          if (combineActionObj["note_" + item.notes_id]) {
+            combineActionObj["note_" + item.notes_id].action.push(item.action);
+          } else {
+            // new object
+            const { notes_id, ...newItem } = item;
+            newItem.action = [newItem.action]; // make it an array
+            combineActionObj["note_" + item.notes_id] = newItem;
+          }
+        });
+        console.log(`qqqqqqqqqqqq`, combineActionObj);
+
+        let arrayOfObjects = Object.keys(combineActionObj).map((key) => {
+          let ar = combineActionObj[key];
+
+          // Apppend key if one exists (optional)
+          ar.key = key;
+
+          return ar;
+        });
+        console.log(`iiiiiiiiiiiiii`, arrayOfObjects);
+
+        let data = arrayOfObjects;
 
         console.log(`results before sorting which is all is`, data);
         let commentQuery = `SELECT * FROM comments WHERE user_id = '${index}' ORDER BY notes_id`;
@@ -1409,15 +1538,116 @@ app.post("/note/:id/comment", (req, res) => {
       (addCommentQueryError, addCommentQueryResult) => {
         whenQueryDone(addCommentQueryError, addCommentQueryResult);
 
-        sqlQuery = `SELECT * FROM notes`;
-        pool.query(sqlQuery, (err, results) => {
-          whenQueryDone(err, results);
-          let data = results.rows;
+        // sqlQuery = `SELECT * FROM notes`;
+        // pool.query(sqlQuery, (err, results) => {
+        //   whenQueryDone(err, results);
+        //   let data = results.rows;
+        //   res.render(`listing`, { data, idx: userId });
+        // });
+
+        let searchQuery = `SELECT notes.id, notes.date, notes.behaviour, notes.flock_size, creator_id, species,
+                            users.id AS user_id, user_name, email, notes_id, behaviour_id, action
+                     FROM notes
+                     INNER JOIN users
+                     ON creator_id = users.id
+                     INNER JOIN notes_behaviour
+                     ON notes.id = notes_id
+                     INNER JOIN behaviours
+                     ON behaviours.id = behaviour_id
+                     ORDER BY notes.id;`;
+        pool.query(searchQuery, (error, result) => {
+          whenQueryDone(error, result);
+          let everyData = result.rows;
+          console.log(`wwwwwwwwwwwww`, everyData);
+
+          const combineActionObj = {};
+          everyData.forEach((item) => {
+            if (combineActionObj["note_" + item.notes_id]) {
+              combineActionObj["note_" + item.notes_id].action.push(
+                item.action
+              );
+            } else {
+              // new object
+              const { notes_id, ...newItem } = item;
+              newItem.action = [newItem.action]; // make it an array
+              combineActionObj["note_" + item.notes_id] = newItem;
+            }
+          });
+          console.log(`qqqqqqqqqqqq`, combineActionObj);
+
+          let arrayOfObjects = Object.keys(combineActionObj).map((key) => {
+            let ar = combineActionObj[key];
+
+            // Apppend key if one exists (optional)
+            ar.key = key;
+
+            return ar;
+          });
+          console.log(`iiiiiiiiiiiiii`, arrayOfObjects);
+
+          let data = arrayOfObjects;
+
           res.render(`listing`, { data, idx: userId });
         });
       }
     );
   });
 });
+
+app.put("/note/:index_a/edit", (req, res) => {
+  const { index_a } = req.params;
+  console.log(`index is`, index_a);
+  console.log(`the form entire info`, req.body);
+
+  // UPDATE
+  let newData = req.body;
+  let actionId;
+  let actionID = [];
+
+  sqlQuery = `UPDATE notes SET date = '${newData.date}', flock_size = '${newData.flock_size}', species = '${newData.species}' WHERE id = '${index_a}';`;
+  console.log(`the query is `, sqlQuery);
+  pool.query(sqlQuery, (error, results) => {
+    whenQueryDone(error, results);
+  });
+
+  console.log(`[[[[[[`, newData.behaviour);
+  let newBehaviours = newData.behaviour;
+  console.log(`##########`, newBehaviours);
+
+  let deleteNoteBehaviour = `DELETE FROM notes_behaviour WHERE notes_id = '${index_a}' returning *`;
+  pool.query(deleteNoteBehaviour, (errorDel, resultDel) => {
+    whenQueryDone(errorDel, resultDel);
+    console.log(`This is what got deleted`, resultDel.rows);
+
+    // newBehaviours.forEach((act) => {
+    //   let updateBehaviourQuery = `INSERT INTO notes_behaviour (notes_id, behaviour_id)
+    //                               SELECT '${index_a}', behaviours.id
+    //                               FROM behaviours
+    //                               WHERE action = '${act}'`;
+    //   pool.query(updateBehaviourQuery, (updateError, updateResult) => {
+    //     whenQueryDone(updateError, updateResult)
+    //     console.log(`bbbbbbbbbbbbbbbbbbbbbbbbb`,updateResult.rows)
+    //   })
+
+    newBehaviours.forEach((act) => {
+      let findBehaviourIdQuery = `SELECT id FROM behaviours WHERE action = '${act}'`;
+      pool.query(findBehaviourIdQuery, (errorBeID, resultsBeID) => {
+        whenQueryDone(errorBeID, resultsBeID);
+        actionId = resultsBeID.rows[0].id;
+        console.log(`yyyyyyyyyyyy`, actionId);
+        actionID.push(actionId);
+
+        let updateNotesBehaviourQuery = `INSERT INTO notes_behaviour (notes_id, behaviour_id) VALUES (${index_a}, ${actionId})`;
+        console.log(`rrrrrrrrrr`, updateNotesBehaviourQuery);
+        pool.query(updateNotesBehaviourQuery, (updateError, updateResult) => {
+          whenQueryDone(updateError, updateResult);
+          console.log(`ddddddddddddd`, updateResult.rows);
+        });
+      });
+    });
+  
+  });
+});
+
 // set port to listen
 app.listen(port);

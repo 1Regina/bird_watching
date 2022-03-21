@@ -21,9 +21,9 @@
               </h6>
             </label><br />
             <input type="text" id="<%key%>" name="<%=key%>" value="<%=value%>" 
-          <%}%>
+     
 
-            <%if (key==="action" ) {%>
+            <% } else if (key==="action" ) {%>
               <% allBehaviour.forEach((behaviour)=> { %>
                 <div class="form-check form-check-inline">
                 <% if (oneNote.action.includes(behaviour)) { %>
