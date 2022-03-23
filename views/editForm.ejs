@@ -11,8 +11,8 @@
     <h1>Edit Sighting </h1>
     <br>
 
-    <form action="/note/<%=oneNote.id%>/edit?_method=PUT" method="POST">
-      <% for (const [key,value] of Object.entries(oneNote)) {%>
+    <form action="/note/<%=data.oneNote.id%>/edit?_method=PUT" method="POST">
+      <% for (const [key,value] of Object.entries(data.oneNote)) {%>
         <% if (!(key==="OBSERVED" )){%>
           <% if ((key==="date" ) || (key==="flock_size" )) {%>
             <label for="<%= key %>">
@@ -22,11 +22,10 @@
             </label><br />
             <input type="text" id="<%key%>" name="<%=key%>" value="<%=value%>" 
      
-
             <% } else if (key==="action" ) {%>
-              <% allBehaviour.forEach((behaviour)=> { %>
+              <% data.allBehaviour.forEach((behaviour)=> { %>
                 <div class="form-check form-check-inline">
-                <% if (oneNote.action.includes(behaviour)) { %>
+                <% if (data.oneNote.action.includes(behaviour)) { %>
                 <input class="form-check-input" type="checkbox" name="behaviour" value="<%= behaviour %>" id="behaviour" checked>
                      <% } else { %>
                           <input class="form-check-input" type="checkbox" name="behaviour" value="<%= behaviour %>" id="behaviour">
@@ -37,7 +36,6 @@
                 </div>
               <%})%>
             <%}%>
-
                       <%if (key==="species" ) {%>
                         <label for="species" class="form-label ">
                           <h5>Species:</h5>
@@ -45,9 +43,9 @@
                         <div class="w-50">
                           <select class="custom-select" id="species" name="species" required>
                             <option selected>
-                              <%=oneNote.species%>
+                              <%=data.oneNote.species%>
                             </option>
-                            <% birdName.forEach((species)=> {%>
+                            <% data.birdName.forEach((species)=> {%>
                               <option value="<%= species.name %>">
                                 <%= species.name %>
                               </option>

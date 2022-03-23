@@ -29,7 +29,7 @@
     </div>
     <br>
     <div class="shadow p-3 mb-5 bg-white rounded capitalize">
-      <%for (const [key, value] of Object.entries(details)) {%>
+      <%for (const [key, value] of Object.entries(data)) {%>
         <% if (!(key==="id" ) && !(key==="creator_id" ) && !(key==="user_id" ) && !(key==="behaviour" ) &&
           !(key==="notes_id" ) && !(key==="behaviour_id" ) && !(key==="key" ) ) {%>
 
@@ -48,7 +48,7 @@
   </div>
   <div class="container">
     <div class="col-sm-12 text-right">
-      <% let comment_id=`comment ${ind}&${details.creator_id}` %>
+      <% let comment_id=`comment ${ind}&${data.creator_id}` %>
         <form action="/note/<%=ind%>/comment" method="POST">
           <input type="submit" value="comment" id=<%comment_id%> class="btn btn-dark"/>
     </div>
