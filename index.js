@@ -101,55 +101,10 @@ app.get("/", (request, response) => {
                      ON behaviours.id = behaviour_id
                      ORDER BY notes.id;`;
   compileByMembership(searchQuery, `listing`, request, response);
-  // pool.query(searchQuery, (error, result) => {
-  //   whenQueryDone(error, result);
-  //   let everyData = result.rows;
-  //   // console.log(`wwwwwwwwwwwww`, everyData);
 
-  //   const combineActionObj = {};
-  //   everyData.forEach((item) => {
-  //     if (combineActionObj["note_" + item.notes_id]) {
-  //       combineActionObj["note_" + item.notes_id].action.push(item.action);
-  //     } else {
-  //       // new object
-  //       const { notes_id, ...newItem } = item;
-  //       newItem.action = [newItem.action]; // make it an array
-  //       combineActionObj["note_" + item.notes_id] = newItem;
-  //     }
-  //   });
-  //   // console.log(`qqqqqqqqqqqq`, combineActionObj);
-
-  //   let arrayOfObjects = Object.keys(combineActionObj).map((key) => {
-  //     let ar = combineActionObj[key];
-
-  //     // Apppend key if one exists (optional)
-  //     ar.key = key;
-
-  //     return ar;
-  //   });
-  //   // console.log(`iiiiiiiiiiiiii`, arrayOfObjects);
-
-  //   let data = arrayOfObjects;
-
-  //   let index;
-  //   if (request.cookies.loggedIn === "true") {
-  //     const { userEmail } = request.cookies;
-  //     sqlQuery = `SELECT * FROM users WHERE email = '${userEmail}'`;
-  //     pool.query(sqlQuery, (erroring, resulting) => {
-  //       whenQueryDone(erroring, resulting);
-  //       index = resulting.rows[0].id;
-  //       // console.log(`aaaaaaaaaaa`, index);
-  //       response.render(`listing`, { data, idx: index });
-  //     });
-  //   } else {
-  //     index = 0;
-  //     response.render(`listing`, { data, idx: index });
-  //   }
-  // });
 });
 
 // SINGLE SIGHTING PAGE
-
 app.get("/note/:id", (request, response) => {
   // console.log("request came in");
   const index = request.params.id;
@@ -165,41 +120,13 @@ app.get("/note/:id", (request, response) => {
                      ON behaviours.id = behaviour_id
                      WHERE notes.id = ${index}`;
 
-  // let singleQuery = `SELECT * from notes WHERE id = ${index};`;
-  // console.log(`Single Query`, singleQuery);
-  // Query using pg.Pool instead of pg.Client
   pool.query(singleQuery, (error, result) => {
     whenQueryDone(error, result);
 
-    // console.log(`raw results are`, result.rows);
-    // let details = queryResult.rows[0];
-    // console.log(`details are`, details);
+
     let everyData = result.rows;
     console.log(`wwwwwwwwwwwww`, everyData);
     let details = summarizeItemIntoObj(everyData);
-
-    // const combineActionObj = {};
-    // everyData.forEach((item) => {
-    //   if (combineActionObj["note_" + item.notes_id]) {
-    //     combineActionObj["note_" + item.notes_id].action.push(item.action);
-    //   } else {
-    //     // new object
-    //     const { notes_id, ...newItem } = item;
-    //     newItem.action = [newItem.action]; // make it an array
-    //     combineActionObj["note_" + item.notes_id] = newItem;
-    //   }
-    // });
-    // console.log(`qqqqqqqqqqqq`, combineActionObj);
-
-    // let arrayOfObjects = Object.keys(combineActionObj).map((key) => {
-    //   let ar = combineActionObj[key];
-
-    //   // Apppend key if one exists (optional)
-    //   ar.key = key;
-    //   return ar;
-    // });
-    // console.log(`iiiiiiiiiiiiii`, arrayOfObjects);
-    // let details = arrayOfObjects[0];
 
     // put in an object so can use the key-value
     response.render(`single_note`, { data: details, ind: index });
@@ -222,7 +149,6 @@ app.get("/note", (request, response) => {
         response.render("new_note", birds);
       });
 
-      // response.render('new_note', birds);
     });
   } else {
     response.send(`You need to login first`);
@@ -297,33 +223,7 @@ app.get("/note/:index/edit", (req, res) => {
     pool.query(searchQuery, (error, result) => {
       whenQueryDone(error, result);
       let everyData = result.rows;
-      // console.log(`wwwwwwwwwwwww`, everyData);
 
-      // const combineActionObj = {};
-      // everyData.forEach((item) => {
-      //   if (combineActionObj["note_" + item.notes_id]) {
-      //     combineActionObj["note_" + item.notes_id].action.push(item.action);
-      //   } else {
-      //     // new object
-      //     const { notes_id, ...newItem } = item;
-      //     newItem.action = [newItem.action]; // make it an array
-      //     combineActionObj["note_" + item.notes_id] = newItem;
-      //   }
-      // });
-      // // console.log(`qqqqqqqqqqqq`, combineActionObj);
-
-      // let arrayOfObjects = Object.keys(combineActionObj).map((key) => {
-      //   let ar = combineActionObj[key];
-
-      //   // Apppend key if one exists (optional)
-      //   ar.key = key;
-
-      //   return ar;
-      // });
-      // // console.log(`iiiiiiiiiiiiii`, arrayOfObjects);
-
-      // let data = arrayOfObjects;
-      // let oneNote = data[0];
       let data = {};
       data.oneNote = summarizeItemIntoObj(everyData);
       // let details =  oneNote ;
@@ -360,8 +260,6 @@ app.get("/note/:index/edit", (req, res) => {
 
 app.put("/note/:index_a/edit", async (req, res) => {
   const { index_a } = req.params;
-  // console.log(`index is`, index_a);
-  // console.log(`the form entire info`, req.body);
 
   // UPDATE
   let newData = req.body;
@@ -374,50 +272,29 @@ app.put("/note/:index_a/edit", async (req, res) => {
 
   // console.log(`[[[[[[`, newData.behaviour);
   let newBehaviours = newData.behaviour;
-  console.log(`##########`, newBehaviours);
 
   let deleteNoteBehaviour = `DELETE FROM notes_behaviour WHERE notes_id = '${index_a}'`;
   await pool.query(deleteNoteBehaviour);
 
-  // console.log(`This is what got deleted`, resultDel.rows);
-
-  // newBehaviours.forEach((act) => {
-  //   let updateBehaviourQuery = `INSERT INTO notes_behaviour (notes_id, behaviour_id)
-  //                               SELECT '${index_a}', behaviours.id
-  //                               FROM behaviours
-  //                               WHERE action = '${act}'`;
-  //   pool.query(updateBehaviourQuery, (updateError, updateResult) => {
-  //     whenQueryDone(updateError, updateResult)
-  //     console.log(`bbbbbbbbbbbbbbbbbbbbbbbbb`,updateResult.rows)
-  //   })
-
-  // let counter = 0
   for (let i = 0; i < newBehaviours.length; i += 1) {
-    // await newBehaviours.forEach(async (act) => {
-    console.log(`helloooooooooooooooooooo`);
-    // counter += 1
+
     let findBehaviourIdQuery = `SELECT id FROM behaviours WHERE action = '${newBehaviours[i]}'`;
     await pool
       .query(findBehaviourIdQuery)
       .then(async (resultsBeID) => {
         actionId = resultsBeID.rows[0].id;
-        // console.log(`yyyyyyyyyyyy`, actionId);
+
         actionID.push(actionId);
 
         let updateNotesBehaviourQuery = `INSERT INTO notes_behaviour (notes_id, behaviour_id) VALUES (${index_a}, ${actionId})`;
-        // console.log(`rrrrrrrrrr`, updateNotesBehaviourQuery);
+
         await pool.query(updateNotesBehaviourQuery);
       })
       .catch((err) => {
         console.log(`something went off`, err);
       });
   }
-  // console.log(`eeeeeeeee`)
-  // if (counter === newBehaviours.length) {
-  // console.log(`eeeeeeeee`, newBehaviours.length)
-  // console.log(`counter `, counter)
-  // setTimeout (async () => {
-  // after for each then do this
+
   let searchQuery = `SELECT notes.id, notes.date, notes.behaviour, notes.flock_size, creator_id, species,
                         users.id AS user_id, user_name, email, notes_id, behaviour_id, action
                      FROM notes
@@ -432,53 +309,10 @@ app.put("/note/:index_a/edit", async (req, res) => {
   console.log(`query`, searchQuery);
   await pool.query(searchQuery).then(async (result) => {
     let everyData = result.rows;
-    //   console.log(`wwwwwwwwwwwww`, everyData);
-
-    //   const combineActionObj = {};
-    //   everyData.forEach((item) => {
-
-    //     if (!combineActionObj["note_" + item.notes_id]) {
-
-    //       console.log(`an action zzzzzzzzzzz`, item.action)
-    //       // new object
-    //       const { notes_id, ...newItem } = item;
-    //       newItem.action = [newItem.action]; // make it an array
-    //       combineActionObj["note_" + item.notes_id] = newItem;
-    //       return
-    //       // combineActionObj["note_" + item.notes_id].action.push(item.action);
-    //       //  console.log(`an action ppppppppp`, item.action)
-    //     }
-    //        combineActionObj["note_" + item.notes_id].action.push(item.action);
-    //       //  console.log(`an action ppppppppp`, item.action)
-
-    //     // else {
-    //       //   console.log(`an action zzzzzzzzzzz`, item.action)
-    //       // // new object
-    //       // const { notes_id, ...newItem } = item;
-    //       // newItem.action = [newItem.action]; // make it an array
-    //       // combineActionObj["note_" + item.notes_id] = newItem;
-    //     // }
-    //   });
-
-    //   // console.log(`qqqqqqqqqqqq`, combineActionObj);
-
-    //   let arrayOfObjects = Object.keys(combineActionObj).map((key) => {
-    //     let ar = combineActionObj[key];
-    //     console.log(`ertwretwrtwrtretw`, ar);
-    //     // Apppend key if one exists (optional)
-    //     ar.key = key;
-
-    //     return ar;
-    //   });
-    //   // console.log(`hhhhhhhhhhhhhhhhhhh`, arrayOfObjects);
-
-    // let data = arrayOfObjects[0];
     let data = summarizeItemIntoObj(everyData);
     res.render(`single_note`, { data, ind: index_a });
   });
-  // }, 2000)
 
-  // return arrayOfObjects;
 });
 
 app.delete("/note/:index/delete", (request, response) => {
@@ -516,53 +350,7 @@ app.delete("/note/:index/delete", (request, response) => {
   }
 });
 
-// // method 2: better. sort listing by chosen parameter
-// function dynamicAscSort(property) {
-//   var sortOrder = 1;
-//   if (property[0] === "-") {
-//     sortOrder = -1;
-//     property = property.substr(1);
-//   }
-//   return function (a, b) {
-//     /* next line works with strings and numbers,
-//      * and you may want to customize it to your needs
-//      */
-//     var result =
-//       a[property] < b[property] ? -1 : a[property] > b[property] ? 1 : 0;
-//     return result * sortOrder;
-//   };
-// }
-// function dynamicDescSort(property) {
-//   var sortOrder = 1;
-//   if (property[0] === "-") {
-//     sortOrder = -1;
-//     property = property.substr(1);
-//   }
-//   return function (a, b) {
-//     /* next line works with strings and numbers,
-//      * and you may want to customize it to your needs
-//      */
-//     var result =
-//       a[property] < b[property] ? 1 : a[property] > b[property] ? -1 : 0;
-//     return result * sortOrder;
-//   };
-// }
-
-// sort function sort date, city and flock_size for the opening listing summary page at Main page
 const sortSummary = (req, res) => {
-  // sqlQuery = `SELECT * FROM notes ORDER BY id ASC;`;
-  // pool.query(sqlQuery, (queryError, queryResult) => {
-  //   if (queryError) {
-  //     console.log("Error executing query", error.stack);
-  //     response.status(503).send(queryResult.rows);
-  //     return;
-  //   }
-  //   if (queryResult.rows.length === 0) {
-  //     response.status(403).send("no records!");
-  //     return;
-  //   }
-  //   let data = queryResult.rows;
-  //   console.log(`results before sorting which is all is`, data);
   let searchQuery = `SELECT notes.id, notes.date, notes.behaviour, notes.flock_size, creator_id, species,
                             users.id AS user_id, user_name, email, notes_id, behaviour_id, action
                      FROM notes
@@ -577,30 +365,6 @@ const sortSummary = (req, res) => {
     whenQueryDone(error, result);
     let everyData = result.rows;
 
-    //   const combineActionObj = {};
-    //   everyData.forEach((item) => {
-    //     if (combineActionObj["note_" + item.notes_id]) {
-    //       combineActionObj["note_" + item.notes_id].action.push(item.action);
-    //     } else {
-    //       // new object
-    //       const { notes_id, ...newItem } = item;
-    //       newItem.action = [newItem.action]; // make it an array
-    //       combineActionObj["note_" + item.notes_id] = newItem;
-    //     }
-    //   });
-    //   console.log(`qqqqqqqqqqqq`, combineActionObj);
-
-    //   let arrayOfObjects = Object.keys(combineActionObj).map((key) => {
-    //     let ar = combineActionObj[key];
-
-    //     // Apppend key if one exists (optional)
-    //     ar.key = key;
-
-    //     return ar;
-    //   });
-    //   console.log(`iiiiiiiiiiiiii`, arrayOfObjects);
-
-    // let data = arrayOfObjects;
     let data = summarizeManyItemsIntoObj(everyData);
 
     if (req.params.parameter === "date") {
@@ -639,7 +403,6 @@ const sortSummary = (req, res) => {
       index = 0;
       res.render(`listing`, { data, idx: index });
     }
-    // res.render(`listing`, { data });
   });
 };
 app.get(`/notes-sortby/:parameter/:sortHow`, sortSummary);
@@ -712,8 +475,6 @@ app.post("/login", (request, response) => {
     }
 
     // The user's password hash matches that in the DB and we authenticate the user.
-    // setCookie('user', user.email, 1)
-    // response.cookie("userEmail", user.email);
     const d = new Date();
     d.setTime(d.getTime() + 1 * 24 * 60 * 60 * 1000);
     let expires = d.toUTCString();
@@ -748,14 +509,7 @@ if (command === "addCreatorId") {
 app.get("/users/:id", (req, res) => {
   let user_now = req.params.id;
   let commentary;
-  // let searchQuery = `SELECT notes.id AS notes_id, notes.date, notes.behaviour, notes.flock_size, creator_id,
-  //                           users.id AS user_id, user_name
-  //                    FROM notes
-  //                    INNER JOIN users
-  //                    ON creator_id = users.id
-  //                    WHERE creator_id = ${user_now}
-  //                    ORDER BY notes.id;`;
-  let searchQuery = `SELECT notes.id, notes.date, notes.behaviour, notes.flock_size, creator_id, species,
+   let searchQuery = `SELECT notes.id, notes.date, notes.behaviour, notes.flock_size, creator_id, species,
                             users.id AS user_id, user_name, email, notes_id, behaviour_id, action
                      FROM notes
                      INNER JOIN users
@@ -769,32 +523,7 @@ app.get("/users/:id", (req, res) => {
   pool.query(searchQuery, (error, result) => {
     whenQueryDone(error, result);
     let everyData = result.rows;
-    // console.log(`wwwwwwwwwwwww`, everyData);
 
-    // const combineActionObj = {};
-    // everyData.forEach((item) => {
-    //   if (combineActionObj["note_" + item.notes_id]) {
-    //     combineActionObj["note_" + item.notes_id].action.push(item.action);
-    //   } else {
-    //     // new object
-    //     const { notes_id, ...newItem } = item;
-    //     newItem.action = [newItem.action]; // make it an array
-    //     combineActionObj["note_" + item.notes_id] = newItem;
-    //   }
-    // });
-    // console.log(`qqqqqqqqqqqq`, combineActionObj);
-
-    // let arrayOfObjects = Object.keys(combineActionObj).map((key) => {
-    //   let ar = combineActionObj[key];
-
-    //   // Apppend key if one exists (optional)
-    //   ar.key = key;
-
-    //   return ar;
-    // });
-    // console.log(`iiiiiiiiiiiiii`, arrayOfObjects);
-
-    // let data = arrayOfObjects;
     let data = summarizeManyItemsIntoObj(everyData);
 
     let commentQuery = `SELECT * FROM comments WHERE user_id = '${user_now}' ORDER BY notes_id`;
@@ -809,12 +538,7 @@ app.get("/users/:id", (req, res) => {
         res.send(`Please login to see the notes you created`);
       }
     });
-    // if (req.cookies.loggedIn === "true") {
-    //   res.render(`listing_user`, { data , commentary});
 
-    // } else {
-    //   res.send(`Please login to see the notes you created`);
-    // }
   });
 });
 
@@ -828,17 +552,6 @@ const userSortSummary = (req, res) => {
       index = resulting.rows[0].id;
       console.log(`aaaaaaaaaaa`, index);
 
-      // let searchQuery = `SELECT notes.id AS notes_id, notes.date, notes.behaviour, notes.flock_size, species, creator_id,
-      //                       users.id AS user_id, user_name
-      //                FROM notes
-      //                INNER JOIN users
-      //                ON creator_id = users.id
-      //                WHERE creator_id = ${index}
-      //                ORDER BY notes.id;`;
-      // pool.query(searchQuery, (error, result) => {
-      //   whenQueryDone(error, result);
-      //   let data = result.rows;
-      //   console.log(`results before sorting which is all is`, data);
       let searchQuery = `SELECT notes.id, notes.date, notes.behaviour, notes.flock_size, creator_id, species,
                             users.id AS user_id, user_name, email, notes_id, behaviour_id, action
                      FROM notes
@@ -853,32 +566,7 @@ const userSortSummary = (req, res) => {
       pool.query(searchQuery, (error, result) => {
         whenQueryDone(error, result);
         let everyData = result.rows;
-        console.log(`wwwwwwwwwwwww`, everyData);
-
-        // const combineActionObj = {};
-        // everyData.forEach((item) => {
-        //   if (combineActionObj["note_" + item.notes_id]) {
-        //     combineActionObj["note_" + item.notes_id].action.push(item.action);
-        //   } else {
-        //     // new object
-        //     const { notes_id, ...newItem } = item;
-        //     newItem.action = [newItem.action]; // make it an array
-        //     combineActionObj["note_" + item.notes_id] = newItem;
-        //   }
-        // });
-        // console.log(`qqqqqqqqqqqq`, combineActionObj);
-
-        // let arrayOfObjects = Object.keys(combineActionObj).map((key) => {
-        //   let ar = combineActionObj[key];
-
-        //   // Apppend key if one exists (optional)
-        //   ar.key = key;
-
-        //   return ar;
-        // });
-        // console.log(`iiiiiiiiiiiiii`, arrayOfObjects);
-
-        // // let data = arrayOfObjects;
+      
         let data = summarizeManyItemsIntoObj(everyData);
 
         if (req.params.parameter === "date") {
@@ -918,7 +606,6 @@ const userSortSummary = (req, res) => {
           }
         });
 
-        // res.render(`listing_user`, { data, idx: index });
       });
     });
   } else {
@@ -975,18 +662,7 @@ const commentsSortSummary = (req, res) => {
     pool.query(sqlQuery, (erroring, resulting) => {
       whenQueryDone(erroring, resulting);
       index = resulting.rows[0].id;
-      console.log(`aaaaaaaaaaa`, index);
 
-      // let searchQuery = `SELECT notes.id AS notes_id, notes.date, notes.behaviour, notes.flock_size, creator_id,
-      //                       users.id AS user_id, user_name
-      //                FROM notes
-      //                INNER JOIN users
-      //                ON creator_id = users.id
-      //                WHERE creator_id = ${index}
-      //                ORDER BY notes.id;`;
-      // pool.query(searchQuery, (error, result) => {
-      //   whenQueryDone(error, result);
-      //   let data = result.rows;
       let searchQuery = `SELECT notes.id, notes.date, notes.behaviour, notes.flock_size, creator_id, species,
                             users.id AS user_id, user_name, email, notes_id, behaviour_id, action
                      FROM notes
@@ -1001,32 +677,7 @@ const commentsSortSummary = (req, res) => {
       pool.query(searchQuery, (error, result) => {
         whenQueryDone(error, result);
         let everyData = result.rows;
-        console.log(`wwwwwwwwwwwww`, everyData);
 
-        // const combineActionObj = {};
-        // everyData.forEach((item) => {
-        //   if (combineActionObj["note_" + item.notes_id]) {
-        //     combineActionObj["note_" + item.notes_id].action.push(item.action);
-        //   } else {
-        //     // new object
-        //     const { notes_id, ...newItem } = item;
-        //     newItem.action = [newItem.action]; // make it an array
-        //     combineActionObj["note_" + item.notes_id] = newItem;
-        //   }
-        // });
-        // console.log(`qqqqqqqqqqqq`, combineActionObj);
-
-        // let arrayOfObjects = Object.keys(combineActionObj).map((key) => {
-        //   let ar = combineActionObj[key];
-
-        //   // Apppend key if one exists (optional)
-        //   ar.key = key;
-
-        //   return ar;
-        // });
-        // console.log(`iiiiiiiiiiiiii`, arrayOfObjects);
-
-        // let data = arrayOfObjects;
         let data = summarizeManyItemsIntoObj(everyData);
 
         console.log(`results before sorting which is all is`, data);
@@ -1122,19 +773,7 @@ app.get(`/species/all`, (request, res) => {
 
 app.get(`/species/:index`, (request, response) => {
   const { index } = request.params;
-  // sqlQuery = `SELECT species.id AS species_id, name, scientific_name,
-  //                    notes.id, date, behaviour, flock_size, creator_id, species, users.id, user_name
-  //             FROM species
-  //             INNER JOIN notes
-  //             ON species = name
-  //             INNER JOIN users
-  //             ON creator_id = users.id
-  //             WHERE species.id = ${index}
-  //             ORDER BY notes.id`;
-  // pool.query(sqlQuery, (error, result) => {
-  //   whenQueryDone(error, result);
-  //   let data = result.rows;
-  //   console.log(`aaaaaaaaaa`, data);
+
   response.clearCookie("birdSpecies");
   // cookie for behaviour id
   const d = new Date();
@@ -1159,68 +798,13 @@ app.get(`/species/:index`, (request, response) => {
                      WHERE species.id = ${index}
                      ORDER BY notes.id;`;
   compileByMembership(searchQuery, `listing_species`, request, response);
-  //   pool.query(searchQuery, (error, result) => {
-  //     whenQueryDone(error, result);
-  //     let everyData = result.rows;
-  //     console.log(`wwwwwwwwwwwww`, everyData);
-
-  //     const combineActionObj = {};
-  //     everyData.forEach((item) => {
-  //       if (combineActionObj["note_" + item.notes_id]) {
-  //         combineActionObj["note_" + item.notes_id].action.push(item.action);
-  //       } else {
-  //         // new object
-  //         const { notes_id, ...newItem } = item;
-  //         newItem.action = [newItem.action]; // make it an array
-  //         combineActionObj["note_" + item.notes_id] = newItem;
-  //       }
-  //     });
-  //     console.log(`qqqqqqqqqqqq`, combineActionObj);
-
-  //     let arrayOfObjects = Object.keys(combineActionObj).map((key) => {
-  //       let ar = combineActionObj[key];
-
-  //       // Apppend key if one exists (optional)
-  //       ar.key = key;
-
-  //       return ar;
-  //     });
-  //     console.log(`iiiiiiiiiiiiii`, arrayOfObjects);
-
-  //     let data = arrayOfObjects;
-
-  //     let ind;
-  //     if (request.cookies.loggedIn === "true") {
-  //       let userE = request.cookies.userEmail;
-  //       let userQuery = `SELECT * FROM users WHERE email = '${userE}'`;
-  //       pool.query(userQuery, (error1, result1) => {
-  //         whenQueryDone(error1, result1);
-  //         ind = result1.rows[0].id;
-  //       });
-  //     } else {
-  //       ind = 0;
-  //     }
-  //     response.render(`listing_species`, { data, idx: ind });
-  //   });
 });
 
 const speciesSortSummary = (req, res) => {
   let { birdSpecies } = req.cookies;
   let speciesID = parseInt(birdSpecies);
   console.log(`wwwwwwwww`, speciesID);
-  // sqlQuery = `SELECT * FROM notes ORDER BY id ASC;`;
-  // pool.query(sqlQuery, (queryError, queryResult) => {
-  //   if (queryError) {
-  //     console.log("Error executing query", error.stack);
-  //     response.status(503).send(queryResult.rows);
-  //     return;
-  //   }
-  //   if (queryResult.rows.length === 0) {
-  //     response.status(403).send("no records!");
-  //     return;
-  //   }
-  //   let data = queryResult.rows;
-  //   console.log(`results before sorting which is all is`, data);
+
   let searchQuery = `SELECT notes.id, notes.date, notes.behaviour, notes.flock_size, creator_id, species, species.id AS species_id, name,
                             users.id AS user_id, user_name, email, notes_id, behaviour_id, action
                      FROM notes
@@ -1237,32 +821,7 @@ const speciesSortSummary = (req, res) => {
   pool.query(searchQuery, (error, result) => {
     whenQueryDone(error, result);
     let everyData = result.rows;
-    //   console.log(`wwwwwwwwwwwww`, everyData);
 
-    //   const combineActionObj = {};
-    //   everyData.forEach((item) => {
-    //     if (combineActionObj["note_" + item.notes_id]) {
-    //       combineActionObj["note_" + item.notes_id].action.push(item.action);
-    //     } else {
-    //       // new object
-    //       const { notes_id, ...newItem } = item;
-    //       newItem.action = [newItem.action]; // make it an array
-    //       combineActionObj["note_" + item.notes_id] = newItem;
-    //     }
-    //   });
-    //   console.log(`qqqqqqqqqqqq`, combineActionObj);
-
-    //   let arrayOfObjects = Object.keys(combineActionObj).map((key) => {
-    //     let ar = combineActionObj[key];
-
-    //     // Apppend key if one exists (optional)
-    //     ar.key = key;
-
-    //     return ar;
-    //   });
-    //   console.log(`iiiiiiiiiiiiii`, arrayOfObjects);
-
-    //   let data = arrayOfObjects;
     let data = summarizeManyItemsIntoObj(everyData);
 
     if (req.params.parameter === "date") {
@@ -1512,13 +1071,6 @@ app.post("/note/:id/comment", (req, res) => {
       (addCommentQueryError, addCommentQueryResult) => {
         whenQueryDone(addCommentQueryError, addCommentQueryResult);
 
-        // sqlQuery = `SELECT * FROM notes`;
-        // pool.query(sqlQuery, (err, results) => {
-        //   whenQueryDone(err, results);
-        //   let data = results.rows;
-        //   res.render(`listing`, { data, idx: userId });
-        // });
-
         let searchQuery = `SELECT notes.id, notes.date, notes.behaviour, notes.flock_size, creator_id, species,
                             users.id AS user_id, user_name, email, notes_id, behaviour_id, action
                      FROM notes
@@ -1532,34 +1084,8 @@ app.post("/note/:id/comment", (req, res) => {
         pool.query(searchQuery, (error, result) => {
           whenQueryDone(error, result);
           let everyData = result.rows;
-          console.log(`wwwwwwwwwwwww`, everyData);
-
-          const combineActionObj = {};
-          everyData.forEach((item) => {
-            if (combineActionObj["note_" + item.notes_id]) {
-              combineActionObj["note_" + item.notes_id].action.push(
-                item.action
-              );
-            } else {
-              // new object
-              const { notes_id, ...newItem } = item;
-              newItem.action = [newItem.action]; // make it an array
-              combineActionObj["note_" + item.notes_id] = newItem;
-            }
-          });
-          console.log(`qqqqqqqqqqqq`, combineActionObj);
-
-          let arrayOfObjects = Object.keys(combineActionObj).map((key) => {
-            let ar = combineActionObj[key];
-
-            // Apppend key if one exists (optional)
-            ar.key = key;
-
-            return ar;
-          });
-          console.log(`iiiiiiiiiiiiii`, arrayOfObjects);
-
-          let data = arrayOfObjects;
+          
+          let data = summarizeManyItemsIntoObj(everyData);
 
           res.render(`listing`, { data, idx: userId });
         });
