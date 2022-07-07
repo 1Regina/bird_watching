@@ -1,0 +1,66 @@
+<!-- <html>
+  <head>
+    <meta charset="UTF-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+      <title>Edit Form</title>
+    </head>
+ <body> -->
+<%- include('navigator_bar') -%>
+  <div class="container capitalize">
+    <h1>Edit Sighting </h1>
+    <br>
+    <form action="/note/<%=data.oneNote.id%>/edit?_method=PUT" method="POST">
+      <% for (const [key,value] of Object.entries(data.oneNote)) {%>
+        <% if (!(key==="OBSERVED" )){%>
+          <% if ((key==="date" ) || (key==="flock_size" )) {%>
+            <label for="<%= key %>">
+              <h6>
+                <%= key %>
+              </h6>
+            </label><br />
+            <input type="text" id="<%key%>" name="<%=key%>" value="<%=value%>" 
+     
+          <% } else if (key==="action" ) {%>
+            <% data.allBehaviour.forEach((behaviour)=> { %>
+              <div class="form-check form-check-inline">
+                <% if (data.oneNote.action.includes(behaviour)) { %>
+                  <input class="form-check-input" type="checkbox" name="behaviour" value="<%= behaviour %>" id="behaviour" checked>
+                <% } else { %>
+                  <input class="form-check-input" type="checkbox" name="behaviour" value="<%= behaviour %>" id="behaviour">
+                <% } %>
+                    <label class="form-check-label" for="behaviour">
+                      <%= behaviour %>
+                    </label>
+              </div>
+            <%})%>
+          <%}%>
+          <%if (key==="species" ) {%>
+            <label for="species" class="form-label ">
+              <h5>Species:</h5>
+            </label>
+            <div class="w-50">
+              <select class="custom-select" id="species" name="species" required>
+                <option selected>
+                  <%=data.oneNote.species%>
+                </option>
+                <% data.birdName.forEach((species)=> {%>
+                  <option value="<%= species.name %>">
+                    <%= species.name %>
+                  </option>
+                <% }); %>
+              </select>
+            </div>
+            <br>
+            <button type="submit" class="btn btn-secondary">Submit</button>
+          <%}%>
+            <br>
+            <br>
+            <br>
+        <%}%>
+      <%}%>
+                              <!-- <input type="submit" value="Submit" /> -->
+    </form>
+  </div>
+  </body> 
+  </html>
