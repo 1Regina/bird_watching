@@ -23,8 +23,7 @@
               </label> <br />
              <input type="text" id="<%key%>" name="<%=key%>" value="<%=value%>">
             <br>
-          <%}%>
-          <% if (key==="action" ) {%>    
+          <%} else if (key==="action" ) {%>    
             <br>
                <h6>Behaviour</h6>
             <% data.allBehaviour.forEach((behaviour)=> { %>
@@ -40,9 +39,9 @@
               </div>
             <%})%>
           <%}%>
-          <%if (key==="species" ) {%>  
-            <label for="species" class="form-label ">
-              <h5>Species:</h5>
+          <% if (key==="species" ) {%>  
+             <label for="species" class="form-label ">
+              <h6>Species:</h6>
             </label>              
             <div class="w-50">
               <select class="custom-select" id="species" name="species" required>
@@ -56,12 +55,15 @@
                 <% }); %>
               </select>
             </div>
-          <%}%>
+            
+          <%}%>                 
         <%}%>
-      <%}%>
-       <br>
-       <br>
-         <button type="submit" class="btn btn-secondary">Submit</button>
+      <%}%>       
+      <div> 
+        <br>
+        <button type="submit" class="btn btn-secondary">Submit</button>
+      </div>
+         
     </form>
   </div>
   </body>
