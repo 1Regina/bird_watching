@@ -363,10 +363,12 @@ app.delete("/note/:index/delete", (request, response) => {
           if (err) {
             console.log(`Check your query again`);
           }
-          response.send("Delete Succesfully");
+          // response.send("Delete Succesfully");
+           response.send('<p>Delete Succesfully. Return to <a href="/">Main</a></p>');
         });
       } else {
-        response.send("You are not authorised to delete this note.");
+        // response.send("You are not authorised to delete this note.");
+        response.send('<p>You are not authorised to delete this note. Return to <a href="/">Main</a></p>');
       }
     });
   } else {
@@ -458,7 +460,8 @@ app.post("/signup", (request, response) => {
     (error, result) => {
       whenQueryDone(error, result);
       const email = values[0];
-      return response.send(`User added : ${email}`);
+      // return response.send(`User added : ${email}`);
+      return response.send(`<p>${email}, Welcome! Go to <a href="/">Main</a></p>`);
     }
   );
 });
@@ -482,7 +485,8 @@ app.post("/login", (request, response) => {
     if (result.rows.length === 0) {
       // the error for incorrect email and incorrect password are the same for security reasons.
       // This is to prevent detection of whether a user has an account for a given service.
-      response.status(403).send("login failed!");
+      // response.status(403).send("login failed!");
+         response.send('<p>Login Failed. Try Again. <a href="/login">Login</a></p>');
       return;
     }
 
@@ -952,7 +956,9 @@ app.delete("/species/:index/delete", (request, response) => {
   pool.query(sqlQuery, (err, results) => {
     whenQueryDone(err, results);
   });
-  response.send("Delete Succesfully");
+  // response.send("Delete Succesfully");
+     response.send('<p>Delete Successfully. Return to <a href="/">Main</a></p>');
+  
 });
 
 // ============= 3POCE8
