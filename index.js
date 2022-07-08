@@ -101,15 +101,15 @@ app.get("/", (request, response) => {
                      ON behaviours.id = behaviour_id
                      ORDER BY notes.id;`;
   compileByMembership(searchQuery, `listing`, request, response);
-
 });
 
 // SINGLE SIGHTING PAGE
 app.get("/note/:id", (request, response) => {
-  // console.log("request came in");
-  const index = request.params.id;
-  // console.log(`request is index`, index);
-  let singleQuery = `SELECT notes.id, notes.date, notes.behaviour, notes.flock_size, creator_id, species,  action,
+  if (request.cookies.loggedIn === "true") {
+    // console.log("request came in");
+    const index = request.params.id;
+    // console.log(`request is index`, index);
+    let singleQuery = `SELECT notes.id, notes.date, notes.behaviour, notes.flock_size, creator_id, species,  action,
                             users.id AS user_id, user_name AS created_by, email, notes_id, behaviour_id
                      FROM notes
                      INNER JOIN users
@@ -120,17 +120,41 @@ app.get("/note/:id", (request, response) => {
                      ON behaviours.id = behaviour_id
                      WHERE notes.id = ${index}`;
 
-  pool.query(singleQuery, (error, result) => {
-    whenQueryDone(error, result);
+    pool.query(singleQuery, (error, result) => {
+      whenQueryDone(error, result);
 
+      let everyData = result.rows;
+      console.log(`wwwwwwwwwwwww`, everyData);
+      let details = summarizeItemIntoObj(everyData);
 
-    let everyData = result.rows;
-    console.log(`wwwwwwwwwwwww`, everyData);
-    let details = summarizeItemIntoObj(everyData);
+      // put in an object so can use the key-value
+      response.render(`single_note`, { data: details, ind: index });
+    });
+  } else {
+    const index = request.params.id;
+    // console.log(`request is index`, index);
+    let singleQuery = `SELECT notes.id, notes.date, notes.behaviour, notes.flock_size, creator_id, species,  action,
+                            users.id AS user_id, user_name AS created_by, email, notes_id, behaviour_id
+                     FROM notes
+                     INNER JOIN users
+                     ON creator_id = users.id
+                     INNER JOIN notes_behaviour
+                     ON notes.id = notes_id
+                     INNER JOIN behaviours
+                     ON behaviours.id = behaviour_id
+                     WHERE notes.id = ${index}`;
 
-    // put in an object so can use the key-value
-    response.render(`single_note`, { data: details, ind: index });
-  });
+    pool.query(singleQuery, (error, result) => {
+      whenQueryDone(error, result);
+
+      let everyData = result.rows;
+      console.log(`wwwwwwwwwwwww`, everyData);
+      let details = summarizeItemIntoObj(everyData);
+
+      // put in an object so can use the key-value
+      response.render(`single_note_public`, { data: details, ind: index });
+    });
+  }
 });
 
 // NEW SIGHTING PAGE
@@ -148,10 +172,10 @@ app.get("/note", (request, response) => {
         console.log(birds);
         response.render("new_note", birds);
       });
-
     });
   } else {
-    response.send(`You need to login first`);
+    // response.send(`You need to login first`);
+    response.send('<p>You need to login first. <a href="/login">Login</a></p>');
   }
 });
 
@@ -250,11 +274,15 @@ app.get("/note/:index/edit", (req, res) => {
           res.render(`editForm`, { data });
         });
       } else {
-        res.send("You are not authorised to edit this post.");
+        // res.send("You are not authorised to edit this post.");
+        res.send(
+          '<p>You are not authorised to edit this post. <a href="/">Go back to Main</a></p>'
+        );
       }
     });
   } else {
-    res.send("You need to login in. Return to home page http://localhost:3004");
+    // res.send("You need to login in. Return to home page http://localhost:3004");
+    res.send('<p>You need to login first. <a href="/login">Login</a></p>');
   }
 });
 
@@ -277,7 +305,6 @@ app.put("/note/:index_a/edit", async (req, res) => {
   await pool.query(deleteNoteBehaviour);
 
   for (let i = 0; i < newBehaviours.length; i += 1) {
-
     let findBehaviourIdQuery = `SELECT id FROM behaviours WHERE action = '${newBehaviours[i]}'`;
     await pool
       .query(findBehaviourIdQuery)
@@ -312,7 +339,6 @@ app.put("/note/:index_a/edit", async (req, res) => {
     let data = summarizeItemIntoObj(everyData);
     res.render(`single_note`, { data, ind: index_a });
   });
-
 });
 
 app.delete("/note/:index/delete", (request, response) => {
@@ -344,8 +370,11 @@ app.delete("/note/:index/delete", (request, response) => {
       }
     });
   } else {
+    // response.send(
+    //   "Only creators are authorised to delete. Login to delete if you are the creator."
+    // );
     response.send(
-      "Only creators are authorised to delete. Login to delete if you are the creator."
+      '<p>Only creators are authorised to delete. Login to delete if you are the creator. <a href="/login">Login</a></p>'
     );
   }
 });
@@ -470,7 +499,11 @@ app.post("/login", (request, response) => {
     if (user.password !== hashedPassword) {
       // the error for incorrect email and incorrect password are the same for security reasons.
       // This is to prevent detection of whether a user has an account for a given service.
-      response.status(403).send("login failed! Password is incorrect");
+      response
+        .status(403)
+        .send(
+          '<p>Login Failed. Password is incorrect. Try again <a href="/login">Login</a></p>'
+        );
       return;
     }
 
@@ -509,7 +542,7 @@ if (command === "addCreatorId") {
 app.get("/users/:id", (req, res) => {
   let user_now = req.params.id;
   let commentary;
-   let searchQuery = `SELECT notes.id, notes.date, notes.behaviour, notes.flock_size, creator_id, species,
+  let searchQuery = `SELECT notes.id, notes.date, notes.behaviour, notes.flock_size, creator_id, species,
                             users.id AS user_id, user_name, email, notes_id, behaviour_id, action
                      FROM notes
                      INNER JOIN users
@@ -535,10 +568,12 @@ app.get("/users/:id", (req, res) => {
       if (req.cookies.loggedIn === "true") {
         res.render(`listing_user`, { data, commentary });
       } else {
-        res.send(`Please login to see the notes you created`);
+        // res.send(`Please login to see the notes you created`);
+        res.send(
+          '<p>Please login to see the notes you created. <a href="/login">Login</a></p>'
+        );
       }
     });
-
   });
 });
 
@@ -566,7 +601,7 @@ const userSortSummary = (req, res) => {
       pool.query(searchQuery, (error, result) => {
         whenQueryDone(error, result);
         let everyData = result.rows;
-      
+
         let data = summarizeManyItemsIntoObj(everyData);
 
         if (req.params.parameter === "date") {
@@ -602,10 +637,12 @@ const userSortSummary = (req, res) => {
           if (req.cookies.loggedIn === "true") {
             res.render(`listing_user`, { data, idx: index, commentary });
           } else {
-            res.send(`Please login to see the notes you created`);
+            // res.send(`Please login to see the notes you created`);
+            res.send(
+              '<p>Please login to see the notes you created. <a href="/login">Login</a></p>'
+            );
           }
         });
-
       });
     });
   } else {
@@ -711,7 +748,8 @@ const commentsSortSummary = (req, res) => {
     });
   } else {
     index = 0;
-    res.send(`login first`);
+    // res.send(`login first`);
+    res.send('<p>Please login. <a href="/login">Login</a></p>');
   }
 };
 app.get(`/users/:id/comments-sortby/:parameter/:sortHow`, commentsSortSummary);
@@ -737,7 +775,10 @@ app.get("/species", (req, res) => {
   if (req.cookies.loggedIn === "true") {
     res.render("new_species");
   } else {
-    res.send("Only members can create species.");
+    // res.send("Only members can create species.");
+    res.send(
+      '<p>Only members can create species. <a href="/login">Login</a></p>'
+    );
   }
 });
 
@@ -1045,7 +1086,8 @@ app.get(`/behaviours/:id/:parameter/:sortHow`, behaviourSortSummary);
 // 3.POCE.9: Bird watching comments
 app.post("/note/:id/comment", (req, res) => {
   if (req.cookies.loggedIn !== "true") {
-    res.send(`you need to login to comment`);
+    // res.send(`you need to login to comment`);
+    res.send('<p>You need to login to comment. <a href="/login">Login</a></p>');
   }
   const { userEmail } = req.cookies;
   const notesId = req.params.id;
@@ -1084,7 +1126,7 @@ app.post("/note/:id/comment", (req, res) => {
         pool.query(searchQuery, (error, result) => {
           whenQueryDone(error, result);
           let everyData = result.rows;
-          
+
           let data = summarizeManyItemsIntoObj(everyData);
 
           res.render(`listing`, { data, idx: userId });

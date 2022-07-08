@@ -1,0 +1,53 @@
+<!-- <!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />  -->
+<title>Sighting Single</title>
+<!-- </head>
+  <body> -->
+<%- include('navigator_bar') -%>
+
+  <div class="container">
+    <h1>Details of Sighting</h1>
+
+    <div class="container">
+      <div class="col-sm-12 text-right">
+        <div class="btn-group btn-group-toggle" data-toggle="buttons">
+          <% let update_id=`update ${ind}` %>
+            <form action="/note/<%=ind%>/edit" method="GET">
+              <input type="submit" value="Update" <%=id=update_id %> class="btn btn-dark"/>
+            </form>
+            <% let delete_id=`delete ${ind}` %>
+              <form action="/note/<%=ind%>/delete?_method=DELETE" method="POST">
+                <input type="submit" value="Delete" <%=id=delete_id %> class="btn btn-dark"/>
+              </form>
+
+        </div>
+      </div>
+    </div>
+    <br>
+    <div class="shadow p-3 mb-5 bg-white rounded capitalize">
+      <%for (const [key, value] of Object.entries(data)) {%>
+        <% if (!(key==="id" ) && !(key==="creator_id" ) && !(key==="user_id" ) && !(key==="behaviour" ) &&
+          !(key==="notes_id" ) && !(key==="behaviour_id" ) && !(key==="key" ) ) {%>
+
+          <ul>
+            <h6>
+              <%=key%>
+            </h6>
+            <p class="text-muted">
+              <%=value%>
+            </p>
+          </ul>
+
+          <%}%>
+            <%}%>
+    </div>
+  </div>
+
+  </form>
+  </body>
+
+  </html>
