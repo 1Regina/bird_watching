@@ -829,7 +829,7 @@ app.get(`/species/:index`, (request, response) => {
     `birdSpecies=${index} ; expires=${expires};path=/species`,
   ]);
   let searchQuery = `SELECT notes.id, notes.date, notes.behaviour, notes.flock_size, creator_id, species, 
-                            species.id, species.name,   
+                            species.id AS species_id, species.name,   
                             users.id AS user_id, user_name, email, notes_id, behaviour_id, action
                      FROM notes
                      INNER JOIN users
