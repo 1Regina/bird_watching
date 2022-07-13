@@ -1,13 +1,14 @@
-import pg from "pg";
-// Initialise DB connection
-const { Pool } = pg;
-const pgConnectionConfigs = {
-  user: "regina",
-  host: "localhost",
-  database: "birding",
-  port: 5432, // Postgres server always runs on this port by default
-};
-const pool = new Pool(pgConnectionConfigs);
+// import pg from "pg";
+// // Initialise DB connection
+// const { Pool } = pg;
+// const pgConnectionConfigs = {
+//   user: "regina",
+//   host: "localhost",
+//   database: "birding2",
+//   port: 5432, // Postgres server always runs on this port by default
+// };
+// const pool = new Pool(pgConnectionConfigs);
+import { pool } from "./db_config.js";
 
 const whenQueryDone = (error, result) => {
   // this error is anything that goes wrong with the query
@@ -26,6 +27,7 @@ const compileByMembership = (searchQuery, ejs, request, response) => {
     whenQueryDone(error, result);
     let everyData = result.rows;
     // console.log(`wwwwwwwwwwwww`, everyData);
+    // console.log(`SIZE123..`, everyData.length, everyData)
 
     const combineActionObj = {};
     everyData.forEach((item) => {
@@ -50,6 +52,7 @@ const compileByMembership = (searchQuery, ejs, request, response) => {
     // console.log(`iiiiiiiiiiiiii`, arrayOfObjects);
 
     let data = arrayOfObjects;
+    // console.log(`array of object`, data)
 
     let index;
     if (request.cookies.loggedIn === "true") {

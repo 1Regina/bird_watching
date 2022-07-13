@@ -13,16 +13,16 @@ import {
   dynamicAscSort,
   dynamicDescSort,
 } from "./helper_functions.js";
-
-// Initialise DB connection
-const { Pool } = pg;
-const pgConnectionConfigs = {
-  user: "regina",
-  host: "localhost",
-  database: "birding",
-  port: 5432, // Postgres server always runs on this port by default
-};
-const pool = new Pool(pgConnectionConfigs);
+import { pool } from "./db_config.js";
+// // Initialise DB connection
+// const { Pool } = pg;
+// const pgConnectionConfigs = {
+//   user: "regina",
+//   host: "localhost",
+//   database: "birding2",
+//   port: 5432, // Postgres server always runs on this port by default
+// };
+// const pool = new Pool(pgConnectionConfigs);
 
 const app = express();
 app.use(express.static("public"));
@@ -100,6 +100,7 @@ app.get("/", (request, response) => {
                      INNER JOIN behaviours
                      ON behaviours.id = behaviour_id
                      ORDER BY notes.id;`;
+  // console.log(`rrere`, searchQuery)
   compileByMembership(searchQuery, `listing`, request, response);
 });
 
@@ -206,8 +207,6 @@ app.post("/note", (request, response) => {
       whenQueryDone(entryError, entryResult);
       const noteId = entryResult.rows[0].id;
       console.log(noteId);
-      console.log(`aaaaaaaa`, behaviour);
-      console.log(`type of behaviour`, typeof behaviour);
       if (typeof(behaviour) === "string") {
         let behaviourId = parseInt(behaviour);
         const behaviourData = [noteId, behaviourId];
@@ -372,8 +371,10 @@ app.delete("/note/:index/delete", (request, response) => {
       whenQueryDone(error, result);
       console.log(`aaaaaaaaa`, result.rows);
       let note = result.rows[0];
+      console.log(`,,,,,,,,`, note.email )
+      console.log(`nnnnnnn`, userEmail )
       if (note.email === userEmail) {
-        sqlQuery = `DELETE FROM notes WHERE id = ${index}`;
+        sqlQuery = `DELETE FROM notes WHERE id = '${index}'`;
         console.log(`The query to delete`, sqlQuery);
         pool.query(sqlQuery, (err, results) => {
           if (err) {
