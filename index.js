@@ -207,7 +207,7 @@ app.post("/note", (request, response) => {
       whenQueryDone(entryError, entryResult);
       const noteId = entryResult.rows[0].id;
       console.log(noteId);
-      if (typeof(behaviour) === "string") {
+      if (typeof behaviour === "string") {
         let behaviourId = parseInt(behaviour);
         const behaviourData = [noteId, behaviourId];
         const notesBehaviourEntry =
@@ -313,28 +313,43 @@ app.put("/note/:index_a/edit", async (req, res) => {
   // console.log(`the query is `, sqlQuery);
   await pool.query(sqlQuery);
 
-  // console.log(`[[[[[[`, newData.behaviour);
+  console.log(`[[[[[[`, newData.behaviour, typeof newData.behaviour);
   let newBehaviours = newData.behaviour;
 
   let deleteNoteBehaviour = `DELETE FROM notes_behaviour WHERE notes_id = '${index_a}'`;
   await pool.query(deleteNoteBehaviour);
 
-  for (let i = 0; i < newBehaviours.length; i += 1) {
-    let findBehaviourIdQuery = `SELECT id FROM behaviours WHERE action = '${newBehaviours[i]}'`;
+  if (typeof newData.behaviour === "string") {
+    let findBehaviourIdQuery = `SELECT id FROM behaviours WHERE action = '${newData.behaviour}'`;
     await pool
       .query(findBehaviourIdQuery)
       .then(async (resultsBeID) => {
         actionId = resultsBeID.rows[0].id;
-
-        actionID.push(actionId);
-
+        console.log("only one behaviour", actionId);
         let updateNotesBehaviourQuery = `INSERT INTO notes_behaviour (notes_id, behaviour_id) VALUES (${index_a}, ${actionId})`;
-
         await pool.query(updateNotesBehaviourQuery);
       })
       .catch((err) => {
         console.log(`something went off`, err);
       });
+  } else {
+    for (let i = 0; i < newBehaviours.length; i += 1) {
+      let findBehaviourIdQuery = `SELECT id FROM behaviours WHERE action = '${newBehaviours[i]}'`;
+      await pool
+        .query(findBehaviourIdQuery)
+        .then(async (resultsBeID) => {
+          actionId = resultsBeID.rows[0].id;
+
+          actionID.push(actionId);
+
+          let updateNotesBehaviourQuery = `INSERT INTO notes_behaviour (notes_id, behaviour_id) VALUES (${index_a}, ${actionId})`;
+
+          await pool.query(updateNotesBehaviourQuery);
+        })
+        .catch((err) => {
+          console.log(`something went off`, err);
+        });
+    }
   }
 
   let searchQuery = `SELECT notes.id, notes.date, notes.behaviour, notes.flock_size, creator_id, species,
@@ -371,8 +386,8 @@ app.delete("/note/:index/delete", (request, response) => {
       whenQueryDone(error, result);
       console.log(`aaaaaaaaa`, result.rows);
       let note = result.rows[0];
-      console.log(`,,,,,,,,`, note.email )
-      console.log(`nnnnnnn`, userEmail )
+      console.log(`,,,,,,,,`, note.email);
+      console.log(`nnnnnnn`, userEmail);
       if (note.email === userEmail) {
         sqlQuery = `DELETE FROM notes WHERE id = '${index}'`;
         console.log(`The query to delete`, sqlQuery);
