@@ -207,13 +207,12 @@ app.post("/note", (request, response) => {
       const noteId = entryResult.rows[0].id;
       console.log(noteId);
       console.log(`aaaaaaaa`, behaviour);
-
-      behaviour.forEach((behaviourId) => {
-        behaviourId = parseInt(behaviourId);
+      console.log(`type of behaviour`, typeof behaviour);
+      if (typeof(behaviour) === "string") {
+        let behaviourId = parseInt(behaviour);
         const behaviourData = [noteId, behaviourId];
         const notesBehaviourEntry =
           "INSERT INTO notes_behaviour (notes_id, behaviour_id) VALUES ($1, $2)";
-
         pool.query(
           notesBehaviourEntry,
           behaviourData,
@@ -221,8 +220,25 @@ app.post("/note", (request, response) => {
             whenQueryDone(notesBehaviourEntryError, notesBehaviourEntryResult);
           }
         );
-      });
+      } else {
+        behaviour.forEach((behaviourId) => {
+          behaviourId = parseInt(behaviourId);
+          const behaviourData = [noteId, behaviourId];
+          const notesBehaviourEntry =
+            "INSERT INTO notes_behaviour (notes_id, behaviour_id) VALUES ($1, $2)";
 
+          pool.query(
+            notesBehaviourEntry,
+            behaviourData,
+            (notesBehaviourEntryError, notesBehaviourEntryResult) => {
+              whenQueryDone(
+                notesBehaviourEntryError,
+                notesBehaviourEntryResult
+              );
+            }
+          );
+        });
+      }
       response.redirect(`/note/${noteId}`);
     });
   });
@@ -357,18 +373,22 @@ app.delete("/note/:index/delete", (request, response) => {
       console.log(`aaaaaaaaa`, result.rows);
       let note = result.rows[0];
       if (note.email === userEmail) {
-        sqlQuery = `DELETE FROM notes WHERE id = '${index}'`;
+        sqlQuery = `DELETE FROM notes WHERE id = ${index}`;
         console.log(`The query to delete`, sqlQuery);
         pool.query(sqlQuery, (err, results) => {
           if (err) {
             console.log(`Check your query again`);
           }
           // response.send("Delete Succesfully");
-           response.send('<p>Delete Succesfully. Return to <a href="/">Main</a></p>');
+          response.send(
+            '<p>Delete Succesfully. Return to <a href="/">Main</a></p>'
+          );
         });
       } else {
         // response.send("You are not authorised to delete this note.");
-        response.send('<p>You are not authorised to delete this note. Return to <a href="/">Main</a></p>');
+        response.send(
+          '<p>You are not authorised to delete this note. Return to <a href="/">Main</a></p>'
+        );
       }
     });
   } else {
@@ -461,7 +481,9 @@ app.post("/signup", (request, response) => {
       whenQueryDone(error, result);
       const email = values[0];
       // return response.send(`User added : ${email}`);
-      return response.send(`<p>${email}, Welcome! Go to <a href="/">Main</a></p>`);
+      return response.send(
+        `<p>${email}, Welcome! Go to <a href="/">Main</a></p>`
+      );
     }
   );
 });
@@ -486,7 +508,9 @@ app.post("/login", (request, response) => {
       // the error for incorrect email and incorrect password are the same for security reasons.
       // This is to prevent detection of whether a user has an account for a given service.
       // response.status(403).send("login failed!");
-         response.send('<p>Login Failed. Try Again. <a href="/login">Login</a></p>');
+      response.send(
+        '<p>Login Failed. Try Again. <a href="/login">Login</a></p>'
+      );
       return;
     }
 
@@ -957,8 +981,7 @@ app.delete("/species/:index/delete", (request, response) => {
     whenQueryDone(err, results);
   });
   // response.send("Delete Succesfully");
-     response.send('<p>Delete Successfully. Return to <a href="/">Main</a></p>');
-  
+  response.send('<p>Delete Successfully. Return to <a href="/">Main</a></p>');
 });
 
 // ============= 3POCE8
