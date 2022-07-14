@@ -182,7 +182,6 @@ app.get("/note", (request, response) => {
 
 // Save new sighting data sent via POST request from our form
 app.post("/note", (request, response) => {
-  console.log(`before add sighting`);
   let date = new Date(request.body.date)
     .toLocaleDateString("en-GB", {
       day: "numeric",
@@ -191,22 +190,20 @@ app.post("/note", (request, response) => {
     })
     .replace(/ /g, "-");
   const { species, behaviour, flock_size } = request.body;
-
   const { userEmail } = request.cookies;
   let creator_id;
   let findCookieUserId = `SELECT * FROM users WHERE email = '${userEmail}';`;
   pool.query(findCookieUserId, (cookieErr, cookieResult) => {
     whenQueryDone(cookieErr, cookieResult);
-    creator_id = cookieResult.rows[0].id;
+    creator_id = cookieResult.rows[0].id
+    const formData = [date, parseInt(flock_size), creator_id, species];
 
-    const formData = [date, flock_size, creator_id, species];
     let entryQuery = `INSERT INTO notes (date, flock_size , creator_id, species) 
                                  VALUES ($1, $2, $3 , $4) 
                                  RETURNING id;`;
     pool.query(entryQuery, formData, (entryError, entryResult) => {
       whenQueryDone(entryError, entryResult);
       const noteId = entryResult.rows[0].id;
-      console.log(noteId);
       if (typeof behaviour === "string") {
         let behaviourId = parseInt(behaviour);
         const behaviourData = [noteId, behaviourId];
