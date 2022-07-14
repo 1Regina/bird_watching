@@ -1287,6 +1287,7 @@ app.post("/note/:id/comment", (req, res) => {
 
 // set port to listen
 // app.listen(port);
-app.listen(process.env.PORT || port, '0.0.0.0', () => {
-  console.log("Server is running.");
-});
+// app.listen(process.env.PORT || port, '0.0.0.0', () => {
+//   console.log("Server is running.");
+// });
+app.listen(process.env.PORT || 5000)
