@@ -26,7 +26,7 @@ const compileByMembership = (searchQuery, ejs, request, response) => {
   pool.query(searchQuery, (error, result) => {
     whenQueryDone(error, result);
     let everyData = result.rows;
-    // console.log(`wwwwwwwwwwwww`, everyData);
+    console.log(`wwwwwwwwwwwww`, everyData);
     // console.log(`SIZE123..`, everyData.length, everyData)
 
     const combineActionObj = {};
